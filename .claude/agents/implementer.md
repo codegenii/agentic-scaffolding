@@ -1,6 +1,6 @@
 ---
 name: implementer
-model: claude-sonnet-5-0
+model: sonnet
 description: Writes interfaces, types, and implementations to satisfy a feature spec and pass a given test suite. Use this agent to scaffold a new interface (interface-only mode) or to fill in implementations until the test suite is green (implementation mode).
 tools:
   - Read

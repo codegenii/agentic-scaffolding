@@ -1,6 +1,6 @@
 ---
 name: spec-reviewer
-model: claude-opus-4-8
+model: opus
 description: Audits a feature spec before any code is written and returns a structured approve / request-changes verdict. The orchestrator must block Phase 2 until this agent approves.
 tools:
   - Read

@@ -1,6 +1,6 @@
 ---
 name: pr-reviewer
-model: claude-haiku-4-5
+model: haiku
 description: Reviews diffs on a feature branch and posts one structured review on the open draft PR. Runs the full toolchain, diffs against main, posts an approve / comment / request-changes verdict.
 tools:
   - Read

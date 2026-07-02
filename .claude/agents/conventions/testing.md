@@ -2,7 +2,7 @@
 
 ## Language
 
-One consistent natural-language locale in test names, comments, helper names.
+American English in test names, comments, helper names — word choice and spelling (behavior not behaviour, initialize not initialise).
 
 ## Commit messages
 

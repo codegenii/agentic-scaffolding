@@ -4,7 +4,7 @@ Always-applicable rules for non-test source. These complement the project's form
 
 ## Language
 
-All prose — comments, doc strings, commit messages — uses one consistent natural-language locale. State the rule, do not restate referenced files.
+All prose — comments, doc strings, commit messages — uses American English: word choice and spelling (favorite, behavior, color, organize, canceled). State the rule, do not restate referenced files.
 
 ## Commit messages
 

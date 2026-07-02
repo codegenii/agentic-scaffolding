@@ -17,7 +17,7 @@ These cross-cut prose and code and are enforced at review time.
 
 ### Language
 
-One consistent natural-language locale in all prose. Docs are terse — state the rule, do not restate referenced files.
+American English in all prose — word choice and spelling (favorite not favourite, behavior not behaviour, color, organize, canceled, license). Docs are terse — state the rule, do not restate referenced files.
 
 ### File ownership
 

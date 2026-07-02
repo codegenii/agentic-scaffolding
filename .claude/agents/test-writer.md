@@ -1,6 +1,6 @@
 ---
 name: test-writer
-model: claude-sonnet-4-6
+model: claude-sonnet-5-0
 description: Writes failing table-driven tests against existing interfaces. Use this agent to produce a test suite that compiles, exercises the interface contract, and fails with a clear "not implemented" reason before any implementation exists.
 tools:
   - Read

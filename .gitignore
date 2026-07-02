@@ -1,0 +1,5 @@
+# Claude Code local permission grants — per-checkout, not shared.
+.claude/settings.local.json
+
+# Worktrees created by the feature/chore/resume commands.
+.claude/worktrees/

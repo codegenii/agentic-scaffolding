@@ -26,7 +26,7 @@ git init
 chmod +x scripts/*.sh
 ```
 
-On a git host you can instead use **"Use this template"** (or fork), then delete `bootstrap-guide.md` from the new project. Either way you should end up with `.claude/`, `docs/`, `scripts/`, `CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, and `.gitignore` at the repo root — and no `bootstrap-guide.md`.
+On a git host you can instead use **"Use this template"** (or fork). Either way you should end up with `.claude/`, `docs/`, `scripts/`, `CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, and `.gitignore` at the repo root. If `bootstrap-guide.md` rode along in the copy, don't worry about it — `/init-project` removes it as part of its self-destruct.
 
 The bundled `.gitignore` already excludes `.claude/settings.local.json` and `.claude/worktrees/`. Set up `main` and commit the scaffold:
 

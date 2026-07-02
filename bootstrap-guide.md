@@ -14,18 +14,21 @@ The template is language-agnostic. Everything stack-specific is a `${...}` varia
 
 ---
 
-## 1. Unpack the template into an empty repo
+## 1. Copy the template into an empty repo
 
-The template ships as `workflow-template.zip` and unpacks **flat** — its contents (`.claude/`, `docs/`, `scripts/`, `CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, `.gitignore`) land at the repo root, no wrapper folder.
+This repo *is* the template — bootstrapping means copying its files into a fresh repo, minus this repo's git history and this guide. From a local clone:
 
 ```bash
-mkdir my-project && cd my-project
+git clone --depth 1 <this-repo-url> my-project
+cd my-project
+rm -rf .git bootstrap-guide.md      # drop the template's history and this setup guide
 git init
-unzip /path/to/workflow-template.zip -d .   # dotfiles included
 chmod +x scripts/*.sh
 ```
 
-Confirm the dotfiles arrived: you should see `.claude/` and `.gitignore` (which already excludes `.claude/settings.local.json` and `.claude/worktrees/`). Then set up `main` and commit the scaffold:
+On a git host you can instead use **"Use this template"** (or fork), then delete `bootstrap-guide.md` from the new project. Either way you should end up with `.claude/`, `docs/`, `scripts/`, `CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, and `.gitignore` at the repo root — and no `bootstrap-guide.md`.
+
+The bundled `.gitignore` already excludes `.claude/settings.local.json` and `.claude/worktrees/`. Set up `main` and commit the scaffold:
 
 ```bash
 git branch -M main

@@ -66,3 +66,10 @@ Every unit of work runs in its own git worktree on its own branch, so parallel s
 | `docs/architecture.md` | Design index; subsystem detail under `docs/architecture/`. |
 | `docs/decisions.md` | Why key choices were made (ADR-style). |
 | `docs/specs/` | Feature specs and the registry. |
+
+## Adapting the workflow
+
+- **Commands, globs, license** — all in `.claude/project.md`. Change them there, never in the phase files.
+- **Agent models** — set per agent in each definition's frontmatter `model:` field.
+- **No GitHub** — the default flow opens a draft PR with `gh`. To drop it, edit `.claude/orchestrator/phases/phase-6.md`, `phase-7.md`, and `.claude/agents/pr-reviewer.md` to review the local diff and stop at the branch. The rest of the workflow is unaffected.
+- **Editing agent definitions** — on some setups Claude's file tools refuse to write files literally named `implementer.md`, `test-writer.md`, `spec-reviewer.md`, or `pr-reviewer.md`. If you hit it, edit the file in a normal text editor or the terminal, or write to a differently-named staging file and `mv` it into place. Nothing else is affected.

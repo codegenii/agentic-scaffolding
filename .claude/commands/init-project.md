@@ -35,8 +35,8 @@ Ask the user for the following, in one batch where possible. Accept "none" for a
 - How integration tests are separated from unit tests (a directory, a tag/marker, an env flag), with the command to run unit-only and integration-only.
 
 **Dependencies and license**
-- License.
-- Allowed dependency licenses (allowlist).
+- License — **default `MIT`**. State the default and let the user override. If MIT, also ask for the copyright holder (default: the repo's git `user.name`).
+- Allowed dependency licenses (allowlist) — **default `MIT, BSD-2-Clause, BSD-3-Clause, Apache-2.0, ISC, MPL-2.0`**.
 - Dependency manifest file(s).
 - Command to add a pinned dependency.
 
@@ -55,6 +55,7 @@ Write the answers into these files, replacing every placeholder:
 4. `CLAUDE.md` — project name, tagline, and the "What this is" section.
 5. `README.md` — project name, tagline, and overview. This file is human- and GitHub-facing, so substitute the real values, not `${...}` tokens.
 6. `docs/architecture.md` and `docs/decisions.md` — replace the stub headers with the project's real summary (or leave as a stub the first feature will grow).
+7. `LICENSE` — create it for the chosen license. For MIT (the default), write the standard MIT text with the current year and the copyright holder. For any other license, insert that license's standard text verbatim, or a clearly-marked placeholder if you cannot reproduce it, and tell the user to paste the official text.
 
 Leave `${...}` variable *references* inside the `.claude/` files as they are — they are resolved at read time from `project.md`, not substituted now. You are filling in `project.md`'s **values** and the prose stubs, not rewriting every reference.
 

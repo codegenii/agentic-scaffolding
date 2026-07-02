@@ -63,7 +63,7 @@ Have these answers ready:
 | Test glob | `**/*.test.ts` | `**/test_*.py` |
 | "not implemented" idiom | `throw new Error("not implemented")` | `raise NotImplementedError("not implemented")` |
 | Integration gate | `tag @integration; unit = npm test, integration = npm run test:int` | `marker @pytest.mark.integration; unit = pytest -m "not integration"` |
-| License + allowlist | `MIT` / `MIT, BSD-2-Clause, BSD-3-Clause, Apache-2.0, ISC, MPL-2.0` | same |
+| License (default `MIT`) + allowlist | `MIT` / `MIT, BSD-2-Clause, BSD-3-Clause, Apache-2.0, ISC, MPL-2.0` | same |
 | Dependency manifest | `package.json` | `pyproject.toml` |
 | Add-dependency cmd | `npm install <pkg>@<version>` | `uv add <pkg>==<version>` |
 

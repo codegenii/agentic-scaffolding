@@ -16,8 +16,8 @@ This project uses a **spec-first, multi-agent TDD workflow** driven by Claude Co
 A feature runs through eight strictly-ordered phases, each with objective entry and exit gates and an iteration cap. Nothing is skipped or reordered.
 
 ```
-spec → spec review → interface skeleton → failing tests (RED)
-     → add deps → implementation (GREEN) → PR review → mark ready
+spec → spec review → add deps → interface skeleton
+     → failing tests (RED) → implementation (GREEN) → PR review → mark ready
 ```
 
 The driving session sequences the phases and spawns worker agents — it never writes code itself. Four agents do the work, under hard file-ownership boundaries:
@@ -71,5 +71,5 @@ Every unit of work runs in its own git worktree on its own branch, so parallel s
 
 - **Commands, globs, license** — all in `.claude/project.md`. Change them there, never in the phase files.
 - **Agent models** — set per agent in each definition's frontmatter `model:` field.
-- **No GitHub** — the default flow opens a draft PR with `gh`. To drop it, edit `.claude/orchestrator/phases/phase-6.md`, `phase-7.md`, and `.claude/agents/pr-reviewer.md` to review the local diff and stop at the branch. The rest of the workflow is unaffected.
+- **No GitHub** — the default flow opens a draft PR with `gh`. To drop it, edit `.claude/orchestrator/phases/phase-7.md`, `phase-8.md`, and `.claude/agents/pr-reviewer.md` to review the local diff and stop at the branch. The rest of the workflow is unaffected.
 - **Editing agent definitions** — on some setups Claude's file tools refuse to write files literally named `implementer.md`, `test-writer.md`, `spec-reviewer.md`, or `pr-reviewer.md`. If you hit it, edit the file in a normal text editor or the terminal, or write to a differently-named staging file and `mv` it into place. Nothing else is affected.

@@ -1,30 +1,35 @@
-# Phase 5 — Implementation (cap: 5 iterations)
+# Phase 5 — Failing tests (cap: 2 retries)
 
-**Entry gate:** Phase 4.5 exit gate passed. Mandatory TDD pre-check — run `${TEST_SCOPE_CMD}`:
-- Exit non-zero **and** at least one failure line contains `not implemented` → proceed.
-- Already green → **escalate immediately**, no red tests to drive implementation.
-- Compile/load errors instead of `not implemented` → **escalate immediately**, broken suite belongs in Phase 4.
+**Entry gate:** Phase 4 exit gate passed. `${BUILD_CMD}` exits 0 (or is `none`). No test files (matching `${TEST_GLOB}`) in the target `${UNIT}` (excluding pre-existing unrelated).
 
-Initialize `impl_iter = 0`, `prev_failures = ""`.
+**Pre-brief extraction.** Read `<spec>`. Extract verbatim the `## Interface contract`, `## Behavior`, and `## Test strategy` sections. Pass inline.
 
-**Each iteration:**
-1. `impl_iter += 1`. If `> 5`, escalate.
-2. Invoke `implementer` (on first iteration extract `## Interface contract` and `## Behavior` from `<spec>` verbatim; reuse the same extracted text on subsequent iterations):
+Invoke `test-writer`:
 
-   > Implement the target `<unit>` to pass `${TEST_SCOPE_CMD}`. Run the test suite after each edit. Iterate until green. Previous failure output: `<prev_failures or "first attempt">`.
-   >
-   > Spec path (reference only — do not read): `<spec>`. Use the extracted sections below as authoritative.
-   >
-   > Architecture context card: `.claude/agents/context/implementer-context.md` — read this and only this.
-   >
-   > ## Extracted Interface contract
-   > <verbatim contents>
-   >
-   > ## Extracted Behavior rules
-   > <verbatim contents>
+> Read the interface files in `<unit>`. Write table-driven test files covering every function and method: happy path, every edge case implied by the spec, and every declared error condition. Honor the extracted **Test strategy** below — gate integration-classified tests per `${INTEGRATION_GATE}` in `.claude/project.md`. Confirm `${TEST_SCOPE_CMD}` (unit-tagged suite only) fails with `not implemented` on every test, never with a compile/load error.
+>
+> Spec path (reference only — do not read): `<spec>`. Use the extracted sections as authoritative.
+>
+> Architecture context card: `.claude/agents/context/test-writer-context.md` — read this and only this.
+>
+> ## Extracted Interface contract
+> <verbatim contents>
+>
+> ## Extracted Behavior rules
+> <verbatim contents>
+>
+> ## Extracted Test strategy
+> <verbatim contents>
 
-3. Run `${TEST_SCOPE_CMD}`.
-4. Green: run `${LINT_CMD}` (skip if `none`). Clean → `git add <unit> && git commit -m "feat(<unit>): implementation"`, proceed to Phase 6. Lint issues → next iteration's failure input.
-5. Red: capture failures. Identical failing-test set for two consecutive iterations → escalate (implementer not making progress). Otherwise update `prev_failures` and loop.
+If test-writer returns `BUILD FAILURE: interfaces not ready for testing`, re-enter Phase 4 with the error (counts against Phase 4's cap).
 
-**Exit gate:** `${TEST_SCOPE_CMD}` exits 0 and `${LINT_CMD}` is clean (or `none`).
+**Exit gate:**
+- `git diff --stat` shows only test files (matching `${TEST_GLOB}`) under `<unit>`.
+- `${TEST_SCOPE_CMD}` (unit suite) exits non-zero.
+- Every failure line contains `not implemented`. A compile/load error here is a hard failure — re-invoke test-writer with the output.
+- Failing-test count covers every behavior classified **unit** in the spec's Test strategy. Integration-only behaviors are exempt.
+- If the spec declares integration tests, confirm they are gated per `${INTEGRATION_GATE}` and are not run by the unit suite.
+
+After 2 retries, escalate.
+
+`git add <unit> && git commit -m "test(<unit>): failing suite"`

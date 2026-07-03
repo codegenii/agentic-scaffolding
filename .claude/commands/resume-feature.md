@@ -35,17 +35,17 @@ Match the **most recent** commit's subject against the table below, top-to-botto
 
 | Most recent commit subject | tests | Open PR | Last completed phase | Resume from |
 |---|---|---|---|---|
-| `feat(...): implementation` or `fix(...): address review` | pass | open, not draft | Phase 6 — PR review | Phase 7 — Mark ready |
-| `feat(...): implementation` or `fix(...): address review` | pass | open, draft | Phase 6 (in progress) | Phase 6 (continue) |
-| `feat(...): implementation` or `fix(...): address review` | pass | none | Phase 5 — Implementation | Phase 6 — PR review |
-| `chore(...): add dependencies` | fail, all `not implemented` | none | Phase 4.5 — Add dependencies | Phase 5 — Implementation |
-| `test(...): failing suite` | fail, all `not implemented` | none | Phase 4 — Failing tests | Phase 4.5 — Add dependencies |
-| `feat(...): interface skeleton` | — | — | Phase 3 — Interface skeleton | Phase 4 — Failing tests |
-| `spec(...): spec approved` | — | — | Phase 2 — SPEC review | Phase 3 — Interface skeleton |
+| `feat(...): implementation` or `fix(...): address review` | pass | open, not draft | Phase 7 — PR review | Phase 8 — Mark ready |
+| `feat(...): implementation` or `fix(...): address review` | pass | open, draft | Phase 7 (in progress) | Phase 7 (continue) |
+| `feat(...): implementation` or `fix(...): address review` | pass | none | Phase 6 — Implementation | Phase 7 — PR review |
+| `test(...): failing suite` | fail, all `not implemented` | none | Phase 5 — Failing tests | Phase 6 — Implementation |
+| `feat(...): interface skeleton` | — | — | Phase 4 — Interface skeleton | Phase 5 — Failing tests |
+| `chore(...): add dependencies` | — | — | Phase 3 — Add dependencies | Phase 4 — Interface skeleton |
+| `spec(...): spec approved` | — | — | Phase 2 — SPEC review | Phase 3 — Add dependencies |
 | any other `spec(...): ...` commit | — | — | Phase 1 — Branch + spec | Phase 2 — SPEC review |
 | (no commits since main) | — | — | (none) | Phase 1 — Branch + spec |
 
-If the observations do not fit any row cleanly, do not guess — report what you found and ask the user which phase to resume from. A `test(...)` or `chore(...)` head commit with **mixed** failures (not all `not implemented`) is one such case — it usually means uncommitted implementer work was lost or partially committed by hand.
+If the observations do not fit any row cleanly, do not guess — report what you found and ask the user which phase to resume from. A `test(...)` head commit with **mixed** failures (not all `not implemented`) is one such case — it usually means uncommitted implementer work was lost or partially committed by hand.
 
 ## Step 4 — Report and confirm
 
@@ -73,7 +73,7 @@ Once the user replies YES, read `.claude/orchestrator.md` and drive it from the 
 
 - **Do not** run Phase 1's branch setup — the worktree is already on `feature/<slug>`.
 - **Do not** re-write or overwrite the spec unless the user explicitly instructs it. An approved spec is immutable — a change goes through Phase 1 supersede mode.
-- **Do** apply the Phase 5 entry gate (confirm red tests via `${TEST_CMD}`) before invoking the implementer, even on resume.
-- For a Phase 5 partial resume, pass the current test failure output as `prev_failures` in the first implementer invocation, and set `impl_iter` to 1.
-- For a Phase 6 partial resume, do not push again if the branch is already on remote, and do not create a new PR if one already exists.
+- **Do** apply the Phase 6 entry gate (confirm red tests via `${TEST_CMD}`) before invoking the implementer, even on resume.
+- For a Phase 6 partial resume, pass the current test failure output as `prev_failures` in the first implementer invocation, and set `impl_iter` to 1.
+- For a Phase 7 partial resume, do not push again if the branch is already on remote, and do not create a new PR if one already exists.
 - Spawn workers via the Task tool without worktree isolation, so they operate in this worktree.

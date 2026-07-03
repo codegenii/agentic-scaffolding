@@ -11,13 +11,13 @@ Stack-specific commands appear below as `${TEST_CMD}`, `${BUILD_CMD}`, etc. Reso
 Phases execute in this order, strictly:
 
 ```
-Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 4.5 → Phase 5 → Phase 6 → Phase 7
- SPEC      SPEC      Interface  Failing   Add deps    Impl       PR        Mark
-           review    skeleton   tests     (opt.)      loop       review    ready
-                                (RED)                 (GREEN)
+Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6 → Phase 7 → Phase 8
+SPEC      SPEC      Add deps  Interface Failing   Impl      PR        Mark
+          review    (opt.)    skeleton  tests     loop      review    ready
+                                        (RED)     (GREEN)
 ```
 
-Phase 4.5 runs every cycle but is a no-op when the spec's **External dependencies** section is "None." — its exit gate passes immediately and no commit is made.
+Phase 3 runs every cycle but is a no-op when the spec's **External dependencies** section is "None." — its exit gate passes immediately and no commit is made.
 
 Every phase has an **entry gate** and an **exit gate** — both must hold. No phase may be skipped, reordered, merged, or abbreviated, not under time pressure, not at user request. A failed exit gate is retried within the phase's cap, or escalated.
 
@@ -33,12 +33,12 @@ Each phase's full procedure (entry gate, steps, brief template, exit gate, commi
 |---|---|
 | Phase 1 — Branch + spec | `.claude/orchestrator/phases/phase-1.md` |
 | Phase 2 — SPEC review | `.claude/orchestrator/phases/phase-2.md` |
-| Phase 3 — Interface skeleton | `.claude/orchestrator/phases/phase-3.md` |
-| Phase 4 — Failing tests | `.claude/orchestrator/phases/phase-4.md` |
-| Phase 4.5 — Add dependencies | `.claude/orchestrator/phases/phase-4_5.md` |
-| Phase 5 — Implementation | `.claude/orchestrator/phases/phase-5.md` |
-| Phase 6 — PR review | `.claude/orchestrator/phases/phase-6.md` |
-| Phase 7 — Mark ready | `.claude/orchestrator/phases/phase-7.md` |
+| Phase 3 — Add dependencies | `.claude/orchestrator/phases/phase-3.md` |
+| Phase 4 — Interface skeleton | `.claude/orchestrator/phases/phase-4.md` |
+| Phase 5 — Failing tests | `.claude/orchestrator/phases/phase-5.md` |
+| Phase 6 — Implementation | `.claude/orchestrator/phases/phase-6.md` |
+| Phase 7 — PR review | `.claude/orchestrator/phases/phase-7.md` |
+| Phase 8 — Mark ready | `.claude/orchestrator/phases/phase-8.md` |
 
 `/resume-feature` determines the current phase from git history (spec commits, skeleton/test/impl commits, PR state), then loads only that phase's file plus this one.
 
@@ -58,7 +58,7 @@ The skill enters the worktree for you. Run all checks below — stop and ask the
 
 ## Spec section extraction (deterministic)
 
-Phases 3, 4, 5, and 6 pass spec sections inline in the brief instead of pointing the agent at the full file. Extraction is mechanical — never paraphrase, never summarize, never reorder.
+Phases 4, 5, 6, and 7 pass spec sections inline in the brief instead of pointing the agent at the full file. Extraction is mechanical — never paraphrase, never summarize, never reorder.
 
 Algorithm: locate the literal line `## <Section>` in `<spec>`, capture every line after it up to the next line beginning with `## ` (or EOF), and emit verbatim under the brief heading `## Extracted <Section>`. If a needed section is missing, escalate — prelint should have caught it.
 

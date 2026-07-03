@@ -1,9 +1,26 @@
 #!/usr/bin/env bash
 # Remove git worktrees and branches whose work is already merged into main.
 #
-# Safe by design: removes only branches merged into main, never the main
-# checkout, never --force, never -D. Dirty or unmerged work is skipped and
-# reported. Commits nothing, pushes nothing, merges nothing.
+# Safe by design: removes only branches whose content is already present on
+# main, never the main checkout, never `git worktree remove --force`. Dirty
+# or unmerged work is skipped and reported. Commits nothing, pushes nothing,
+# merges nothing.
+#
+# Branch deletion uses `git branch -D`, not `-d`: git's own -d safety check
+# is ancestry-based and always refuses a squash- or rebase-merged branch, no
+# matter how thoroughly it was actually reviewed and merged. -D is gated
+# entirely on this script's own is_merged() check below, which is stricter
+# than git's (patch-content equivalence, not graph ancestry) — so it is only
+# ever applied to branches whose content is provably already on main.
+#
+# "Merged" is detected by patch-id equivalence, not commit ancestry: this repo
+# integrates PRs via squash/rebase merge, so plain `git branch --merged`
+# (ancestry-based) never matches — the branch tip commit is never an ancestor
+# of main once its content lands as a brand-new squash commit. For each branch
+# we build a throwaway commit (branch tip's tree, parented on the branch/main
+# merge-base) and ask `git cherry` whether an equivalent patch already exists
+# on main. The throwaway commit is never attached to a ref; it's ordinary git
+# gc litter and disappears on the next gc.
 #
 # Run from the main checkout:  ./scripts/prune-worktrees.sh
 set -euo pipefail
@@ -26,12 +43,22 @@ if [ "$top_level" != "$main_path" ]; then
     exit 1
 fi
 
-git fetch origin --quiet 2>/dev/null || true
+if ! git fetch origin --quiet 2>/dev/null; then
+    echo "Warning: could not fetch origin; checking against local main, which may be stale." >&2
+fi
 base="origin/main"
 git rev-parse --verify --quiet origin/main >/dev/null 2>&1 || base="main"
 
-merged="$(git branch --merged "$base" --format='%(refname:short)')"
-is_merged() { grep -qxF "$1" <<<"$merged"; }
+# True if branch $1's content is already present on $base, regardless of
+# whether it landed via merge commit, rebase, or squash.
+is_merged() {
+    local branch="$1" merge_base tree synthetic mark
+    merge_base="$(git merge-base "$base" "$branch" 2>/dev/null)" || return 1
+    tree="$(git rev-parse "$branch^{tree}" 2>/dev/null)" || return 1
+    synthetic="$(git commit-tree "$tree" -p "$merge_base" -m _prune-check)"
+    mark="$(git cherry "$base" "$synthetic" | cut -c1)"
+    [ "$mark" = "-" ]
+}
 
 removed=() skipped=()
 
@@ -57,13 +84,18 @@ done
 
 while IFS= read -r branch; do
     [ -z "$branch" ] && continue
-    [ "$branch" = "main" ] || [ "$branch" = "master" ] && continue
-    if out="$(git branch -d "$branch" 2>&1)"; then
+    if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
+        continue
+    fi
+    if ! is_merged "$branch"; then
+        continue
+    fi
+    if out="$(git branch -D "$branch" 2>&1)"; then
         removed+=("branch $branch")
     else
         skipped+=("branch $branch — $out")
     fi
-done <<<"$merged"
+done < <(git for-each-ref refs/heads --format='%(refname:short)')
 
 # --- Step 4: report ---------------------------------------------------------
 

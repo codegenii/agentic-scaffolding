@@ -1,0 +1,6 @@
+# Normalize line endings: store LF in the repo, convert per platform on checkout.
+* text=auto
+
+# Shell scripts must stay LF even on Windows checkouts — a CRLF in the `#!`
+# shebang line breaks the script on Linux, macOS, and Git Bash.
+*.sh text eol=lf

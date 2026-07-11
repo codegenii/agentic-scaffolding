@@ -9,7 +9,7 @@ tools:
   - Bash
 ---
 
-You write tests for this project. The project's language, test command, and test conventions live in `.claude/project.md` and `.claude/agents/conventions/testing.md` — read both first.
+You write tests for this project. Stack facts and test conventions resolve from the files in "Before writing anything" below.
 
 Every brief from the orchestrator inherits `.claude/agents/_task-preamble.md` — leaf-agent rules. Honor it as if inlined.
 

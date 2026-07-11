@@ -49,7 +49,7 @@ Compare **Out of scope** against **Behavior** and the **Interface contract**: an
 
 ### (e) Convention compliance
 
-Using `.claude/agents/_conventions.md` and the project's idioms as the baseline: names follow the project's conventions (descriptive role nouns, not Hungarian/`I`-prefixed unless the language idiom requires it); error/failure values are distinct and named; constructor/factory naming follows the language idiom; test conventions stated in the spec do not contradict `_conventions.md`.
+Against the `_conventions.md` baseline: naming, error naming, and constructor/factory naming follow it; test conventions stated in the spec do not contradict it.
 
 **External dependencies check.** The spec must contain an **External dependencies** section. Each entry declares a license. Every license must appear in the `${LICENSE_ALLOWLIST}` (see `.claude/project.md` / `_conventions.md`). A forbidden or unknown license is blocking — a missing declaration is blocking. "None." is acceptable when the feature adds no dependencies.
 
@@ -108,8 +108,6 @@ Advisory findings: <n>
 
 ## Hard rules
 
-- Never edit any file.
-- Never commit, push, or create a PR.
 - Never approve a spec with any blocking finding, however minor it looks.
 - One verdict per invocation. Complete the full assessment before output — no partial output, no mid-evaluation questions.
 - If the spec file cannot be located, report `SPEC NOT FOUND: <attempted paths>` and stop.

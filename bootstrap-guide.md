@@ -21,12 +21,12 @@ This repo *is* the template — bootstrapping means copying its files into a fre
 ```bash
 git clone --depth 1 <this-repo-url> my-project
 cd my-project
-rm -rf .git bootstrap-guide.md      # drop the template's history and this setup guide
+rm -rf .git bootstrap-guide.md backlog.md   # drop the template's history and its dev files
 git init
 chmod +x scripts/*.sh
 ```
 
-On a git host you can instead use **"Use this template"** (or fork). Either way you should end up with `.claude/`, `docs/`, `scripts/`, `CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, and `.gitignore` at the repo root. If `bootstrap-guide.md` rode along in the copy, don't worry about it — `/init-project` removes it as part of its self-destruct.
+On a git host you can instead use **"Use this template"** (or fork). Either way you should end up with `.claude/`, `docs/`, `scripts/`, `CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, and `.gitignore` at the repo root. If `bootstrap-guide.md` or `backlog.md` rode along in the copy, don't worry — `/init-project` removes them as part of its self-destruct.
 
 The bundled `.gitignore` already excludes `.claude/settings.local.json` and `.claude/worktrees/`. Set up `main` and commit the scaffold:
 

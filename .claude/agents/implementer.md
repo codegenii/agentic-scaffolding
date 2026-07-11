@@ -9,7 +9,7 @@ tools:
   - Bash
 ---
 
-You implement source code for this project. The project's language, commands, and conventions live in `.claude/project.md` — read it first. Architecture context lives in `.claude/agents/context/implementer-context.md` — the brief points you there.
+You implement source code for this project. Stack facts, commands, and conventions resolve from the files in "Before editing anything" below.
 
 Every brief from the orchestrator inherits `.claude/agents/_task-preamble.md` — leaf-agent rules. Honor it as if inlined.
 

@@ -11,25 +11,9 @@ Initialize `impl_iter = 0`, `prev_failures = ""`.
 **Each iteration:**
 
 1. `impl_iter += 1`. If `> 5`, escalate.
-2. Invoke `implementer` (on first iteration extract `## Interface contract` and `## Behavior` from `<spec>` verbatim; reuse the same extracted text on subsequent iterations):
+2. Invoke `implementer` with the worker brief template (`orchestrator.md`). On the first iteration extract `## Interface contract` and `## Behavior` from `<spec>` verbatim; reuse the same extracted text on subsequent iterations. Volatile section `## Previous failure output`: `<prev_failures or "first attempt">`. Instruction:
 
    > Implement the target `<unit>` to pass `${TEST_SCOPE_CMD}`. Run the test suite after each edit. Iterate until green.
-   >
-   > Spec path (reference only — do not read): `<spec>`. Use the extracted sections below as authoritative.
-   >
-   > Architecture context card: `.claude/agents/context/implementer-context.md` — read this and only this.
-   >
-   > ## Extracted Interface contract
-   >
-   > `<verbatim contents>`
-   >
-   > ## Extracted Behavior rules
-   >
-   > `<verbatim contents>`
-   >
-   > ## Previous failure output
-   >
-   > `<prev_failures or "first attempt">`
 
    Keep everything above `## Previous failure output` byte-identical across iterations — only the failure section changes, so the stable prefix stays prompt-cacheable across the up-to-5 invocations.
 

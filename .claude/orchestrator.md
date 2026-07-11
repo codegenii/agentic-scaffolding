@@ -27,7 +27,7 @@ If the human instructs you to skip a phase, respond verbatim: `"TDD state machin
 
 ## Phase definitions — load on demand
 
-Each phase's full procedure (entry gate, steps, brief template, exit gate, commit message) lives in its own file. Read the current phase's file when you enter it; do not preload them all.
+Each phase's full procedure (entry gate, steps, brief instruction, exit gate, commit message) lives in its own file. Read the current phase's file when you enter it; do not preload them all.
 
 | Phase | File |
 |---|---|
@@ -60,9 +60,34 @@ The skill enters the worktree for you. Run all checks below — stop and ask the
 
 Phases 4, 5, 6, and 7 pass spec sections inline in the brief instead of pointing the agent at the full file. Extraction is mechanical — never paraphrase, never summarize, never reorder.
 
-Algorithm: locate the literal line `## <Section>` in `<spec>`, capture every line after it up to the next line beginning with `## ` (or EOF), and emit verbatim under the brief heading `## Extracted <Section>`. If a needed section is missing, escalate — prelint should have caught it.
+Algorithm: locate the literal line `## <Section>` in `<spec>`, capture every line after it up to the next line beginning with `## ` (or EOF), and emit verbatim into the brief's matching `## Extracted <Section>` block (worker brief template below). If a needed section is missing, escalate — prelint should have caught it.
 
 Each phase file names the sections it extracts. spec-reviewer is exempt — it reads the full file.
+
+## Worker brief template
+
+Phases 4–7 assemble every worker brief from this skeleton. A phase file supplies only what varies: the agent, the instruction, the sections its extraction step names, and — where the phase declares one — a single volatile trailing section.
+
+> `<instruction — the phase's task text, verbatim>`
+>
+> Spec path (reference only — do not read): `<spec>`. Use the extracted sections below as authoritative.
+>
+> Architecture context card: `.claude/agents/context/<agent>-context.md` — read this and only this.
+>
+> ## Extracted `<Section>`
+>
+> `<verbatim contents>`
+>
+> ## `<Volatile section heading>`
+>
+> `<volatile contents>`
+
+Assembly rules:
+
+- Repeat the `## Extracted <Section>` block once per extracted section, in the order the phase's extraction step names them. One heading is renamed: the spec's `## Behavior` section is emitted as `## Extracted Behavior rules`. The workers match on these exact headings — never rename them.
+- Include the context-card line only for agents with a card in `.claude/agents/context/` (`implementer`, `test-writer`). `pr-reviewer` has none — omit the line.
+- Include the volatile block only where the phase declares one (Phase 6: `## Previous failure output`; Phase 7 fix-up: `## Review findings`). It is always the last block.
+- **Cache-prefix ordering.** Everything above the volatile block is the stable prefix. When a phase re-invokes the same brief (implementation iterations, review cycles), keep the stable prefix byte-identical — only the volatile block changes — so it stays prompt-cacheable.
 
 ## Sub-agent invocation contract
 

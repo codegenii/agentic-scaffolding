@@ -11,54 +11,18 @@ Initialize `review_iter = 0`.
 
 **Each cycle:**
 
-1. Idempotency guard: if the latest review's commit (`gh pr view --json reviews -q '.reviews[-1].commit.oid'`) equals `git rev-parse HEAD`, do not re-invoke pr-reviewer — read that verdict and continue at step 2. Otherwise extract verbatim the `## Purpose`, `## Interface contract`, `## Behavior`, `## Out of scope`, and `## External dependencies` sections of `<spec>` and invoke `pr-reviewer`:
+1. Idempotency guard: if the latest review's commit (`gh pr view --json reviews -q '.reviews[-1].commit.oid'`) equals `git rev-parse HEAD`, do not re-invoke pr-reviewer — read that verdict and continue at step 2. Otherwise extract verbatim the `## Purpose`, `## Interface contract`, `## Behavior`, `## Out of scope`, and `## External dependencies` sections of `<spec>` and invoke `pr-reviewer` with the worker brief template (`orchestrator.md`). Instruction:
 
-   > Review the open draft PR for branch `<branch>`. Run the toolchain, diff against main, and post a single structured review via `gh pr review`.
-   >
-   > Spec path (reference only — do not read): `<spec>`. Use the extracted sections below as authoritative for SPEC-compliance checks.
-   >
-   > ## Extracted Purpose
-   >
-   > `<verbatim contents>`
-   >
-   > ## Extracted Interface contract
-   >
-   > `<verbatim contents>`
-   >
-   > ## Extracted Behavior rules
-   >
-   > `<verbatim contents>`
-   >
-   > ## Extracted Out of scope
-   >
-   > `<verbatim contents>`
-   >
-   > ## Extracted External dependencies
-   >
-   > `<verbatim contents>`
+   > Review the open draft PR for branch `<branch>`. Run the toolchain, diff against main, and post a single structured review via `gh pr review`. The extracted sections below are authoritative for SPEC-compliance checks.
 
 2. Read the latest verdict: `gh pr view --json reviews -q '.reviews[-1].state'`.
 3. `APPROVED` or `COMMENTED` → Phase 8.
 4. `CHANGES_REQUESTED`:
    - `review_iter += 1`. If `> 2`, escalate.
    - Body: `gh pr view --json reviews -q '.reviews[-1].body'`.
-   - Invoke `implementer` (reuse the extracted `## Interface contract` and `## Behavior` from Phase 6):
+   - Invoke `implementer` with the worker brief template (reuse the extracted `## Interface contract` and `## Behavior` from Phase 6). Volatile section `## Review findings`: the review body, pasted verbatim. Instruction:
 
      > The PR reviewer requested changes on the draft PR. Address each finding in the review below. Run `${TEST_SCOPE_CMD}` and `${LINT_CMD}` and confirm both clean before stopping.
-     >
-     > Spec path (reference only — do not read): `<spec>`. Use the extracted sections below as authoritative.
-     >
-     > ## Extracted Interface contract
-     >
-     > `<verbatim contents>`
-     >
-     > ## Extracted Behavior rules
-     >
-     > `<verbatim contents>`
-     >
-     > ## Review findings
-     >
-     > `<paste verbatim>`
 
      Volatile content (the findings) goes last so the brief's stable prefix stays prompt-cacheable across cycles.
 

@@ -4,22 +4,9 @@
 
 **Pre-brief extraction.** Read `<spec>`. Extract verbatim the `## Interface contract`, `## Behavior`, and `## Test strategy` sections. Pass inline.
 
-Invoke `test-writer`:
+Invoke `test-writer` with the worker brief template (`orchestrator.md`). Instruction:
 
 > Read the interface files in `<unit>`. Write table-driven test files covering every function and method: happy path, every edge case implied by the spec, and every declared error condition. Honor the extracted **Test strategy** below — gate integration-classified tests per `${INTEGRATION_GATE}` in `.claude/project.md`. Confirm `${TEST_SCOPE_CMD}` (unit-tagged suite only) fails with `not implemented` on every test, never with a compile/load error.
->
-> Spec path (reference only — do not read): `<spec>`. Use the extracted sections as authoritative.
->
-> Architecture context card: `.claude/agents/context/test-writer-context.md` — read this and only this.
->
-> ## Extracted Interface contract
-> <verbatim contents>
->
-> ## Extracted Behavior rules
-> <verbatim contents>
->
-> ## Extracted Test strategy
-> <verbatim contents>
 
 If test-writer returns `BUILD FAILURE: interfaces not ready for testing`, re-enter Phase 4 with the error (counts against Phase 4's cap).
 

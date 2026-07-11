@@ -38,7 +38,7 @@ Present the list and ask the user to confirm or narrow it. Anything dropped will
 
 ## Step 4 — Drive the feature workflow
 
-The feature workflow runs in **this** session — there is no separate "orchestrator" agent to spawn. Only the top-level session can spawn the `spec-reviewer`, `implementer`, `test-writer`, and `pr-reviewer` worker agents, so this session drives the workflow itself.
+The feature workflow runs in **this** session — there is no separate "orchestrator" agent to spawn. Only the top-level session can spawn the `spec-writer`, `spec-reviewer`, `implementer`, `test-writer`, and `pr-reviewer` worker agents, so this session drives the workflow itself.
 
 1. Call `EnterWorktree` to isolate this session in a fresh worktree branched from `origin/main`. This skill is the explicit instruction that authorizes the tool. If `EnterWorktree` reports the session is already in a worktree, stop and tell the user to run `/new-feature` from a normal session.
 2. Read `.claude/orchestrator.md` — the feature workflow — and drive it yourself, Phases 1 through 8. Its Phase 1 renames the worktree's branch to `feature/<slug>`.
@@ -47,6 +47,6 @@ The feature workflow runs in **this** session — there is no separate "orchestr
    - **acceptance criteria** — the text from Step 2 (narrowed if Step 3 narrowed it). These become the **Behavior** rules of the spec.
    - **constraints** — the text from Step 2. These become the **Out of scope** and constraint notes in the **Interface contract**.
    - **dropped scope** — items narrowed out in Step 3, if any. These prepopulate the spec's **Out of scope** section.
-4. Spawn `spec-reviewer` / `implementer` / `test-writer` / `pr-reviewer` via the Task tool as the workflow directs — without worktree isolation, so they operate in this worktree. Every Task brief inherits `.claude/agents/_task-preamble.md` — consult the orchestrator's "Sub-agent invocation contract" before composing one.
+4. Spawn `spec-writer` / `spec-reviewer` / `implementer` / `test-writer` / `pr-reviewer` via the Task tool as the workflow directs — without worktree isolation, so they operate in this worktree. Every Task brief inherits `.claude/agents/_task-preamble.md` — consult the orchestrator's "Sub-agent invocation contract" before composing one.
 
 Follow the state machine exactly — no skipped or reordered phases.

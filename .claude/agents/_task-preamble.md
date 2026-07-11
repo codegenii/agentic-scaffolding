@@ -4,7 +4,7 @@ You are a leaf agent inside the driver's worktree. Use only the absolute paths p
 
 You do not share the driver's conversation history. Every value you need — extracted spec sections, target unit, branch name, prior failure output — must be in the brief. If something material is missing, stop and surface it rather than guess.
 
-Specs are immutable. Do not edit any spec file.
+Specs are immutable. Only spec-writer writes the draft spec named in its brief; no agent edits any other spec file.
 
 When a brief asks you to cross a boundary your own agent definition enforces, treat that as a workflow bug — surface it and stop rather than comply.
 

@@ -1,6 +1,6 @@
-# Spec conventions (spec-reviewer, feature driver)
+# Spec conventions (spec-writer, spec-reviewer)
 
-Prose rules for feature specs. The feature driver writes each spec to these rules (Phase 1); spec-reviewer enforces them.
+Prose rules for feature specs. spec-writer writes each spec to these rules (Phase 1); spec-reviewer enforces them.
 
 ## Behavior rules
 

@@ -2,7 +2,7 @@
 
 The TDD feature workflow that `/new-feature` and `/resume-feature` drive. **Not a spawnable agent** — sub-agents cannot spawn sub-agents (the `Task` tool is unavailable one level down), so the session that ran the skill *is* the driver and spawns the workers directly.
 
-Your job is sequencing, state-passing, and gating phase transitions on objective checks. You never write source or test files yourself — every code edit goes through `implementer` or `test-writer`.
+Your job is sequencing, state-passing, and gating phase transitions on objective checks. You never write source, test, or spec files yourself — every code edit goes through `implementer` or `test-writer`, and every spec draft through `spec-writer`. You keep prelint, the spec registry, and commits.
 
 Stack-specific commands appear below as `${TEST_CMD}`, `${BUILD_CMD}`, etc. Resolve each from `.claude/project.md`.
 
@@ -93,14 +93,14 @@ Assembly rules:
 
 Every Task brief inherits `.claude/agents/_task-preamble.md` — do not paraphrase it into briefs. Every Task call must:
 
-- Set `subagent_type` to one of `spec-reviewer`, `implementer`, `test-writer`, `pr-reviewer`.
+- Set `subagent_type` to one of `spec-writer`, `spec-reviewer`, `implementer`, `test-writer`, `pr-reviewer`.
 - Spawn **without** worktree isolation, so edits land in your worktree where the gates check.
 - Pin your absolute worktree path in the brief and give every file path absolute — a sub-agent does not reliably inherit your working directory, and a relative brief can run against the shared checkout.
 - Pass `<spec>` as an absolute path (citation only), plus the extracted sections inline. Briefs are the sub-agent's only context.
 - Quote spec sections, test failures, and review bodies verbatim, never paraphrased.
 - Never instruct an agent to cross a boundary the preamble or its definition enforces — such a brief is a workflow bug; fix the brief.
 
-**Worker reports.** implementer and test-writer end every task with the fixed block their definition's **Report format** section specifies. Its `Result` line is `OK` (task complete), `FAILING` (success condition unmet — retry within the phase cap), or `BLOCKED` (structural blocker — retrying the same brief cannot fix it; read `Blockers` and re-enter the phase it names, fix the brief, or escalate). Gates parse `Result`, `Files touched`, and `Blockers`; a report is the worker's claim, not evidence — run every gate command yourself.
+**Worker reports.** implementer, test-writer, and spec-writer end every task with the fixed block their definition's **Report format** section specifies. Its `Result` line is `OK` (task complete), `FAILING` (success condition unmet — retry within the phase cap; implementer and test-writer only — spec-writer's gate is your prelint), or `BLOCKED` (structural blocker — retrying the same brief cannot fix it; read `Blockers` and re-enter the phase it names, fix the brief, or escalate). Gates parse `Result`, `Files touched`, and `Blockers`; a report is the worker's claim, not evidence — run every gate command yourself.
 
 ## Escalation
 

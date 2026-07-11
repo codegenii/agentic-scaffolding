@@ -20,10 +20,11 @@ spec → spec review → add deps → interface skeleton
      → failing tests (RED) → implementation (GREEN) → PR review → mark ready
 ```
 
-The driving session sequences the phases and spawns worker agents — it never writes code itself. Four agents do the work, under hard file-ownership boundaries:
+The driving session sequences the phases and spawns worker agents — it never writes code or spec drafts itself. Five agents do the work, under hard file-ownership boundaries:
 
 | Agent | Writes | Never touches |
 |---|---|---|
+| `spec-writer` | the feature spec draft | source, tests, the spec registry |
 | `spec-reviewer` | nothing (verdict only) | — |
 | `implementer` | non-test source | test files, specs |
 | `test-writer` | test files | non-test source, specs |
@@ -45,7 +46,7 @@ Feature specs live in `docs/specs/` as `<date>-<slug>.md`, indexed by `docs/spec
 
 ## Invariants
 
-The load-bearing rules every change must preserve live in **one** file: `.claude/agents/conventions/invariants.md`. All four agents load it. Add rules there — never copy an invariant into a role file (the `/retro` command checks for that drift). The reasoning behind each invariant belongs in `docs/decisions.md`.
+The load-bearing rules every change must preserve live in **one** file: `.claude/agents/conventions/invariants.md`. All five agents load it. Add rules there — never copy an invariant into a role file (the `/retro` command checks for that drift). The reasoning behind each invariant belongs in `docs/decisions.md`.
 
 ## Working in parallel
 
@@ -61,7 +62,7 @@ Every unit of work runs in its own git worktree on its own branch, so parallel s
 |---|---|
 | `.claude/project.md` | Stack config — every `${...}` variable resolves here. |
 | `.claude/orchestrator.md` + `orchestrator/phases/` | The eight-phase state machine. |
-| `.claude/agents/` | The four worker agents, their conventions, and context cards. |
+| `.claude/agents/` | The five worker agents, their conventions, and context cards. |
 | `.claude/agents/conventions/invariants.md` | The single source of project invariants. |
 | `docs/architecture.md` | Design index; subsystem detail under `docs/architecture/`. |
 | `docs/configuration.md` | How to supply configuration locally — secrets are never committed. |
@@ -71,6 +72,6 @@ Every unit of work runs in its own git worktree on its own branch, so parallel s
 ## Adapting the workflow
 
 - **Commands, globs, license** — all in `.claude/project.md`. Change them there, never in the phase files.
-- **Agent models** — set per agent in each definition's frontmatter `model:` field. The defaults are deliberate: `spec-reviewer` runs opus (one call per feature guarding the highest-leverage gate — cheap insurance), `implementer`/`test-writer` sonnet, `pr-reviewer` haiku (its inputs arrive pre-validated — green tests, clean build, driver-run license and surface-drift checks — and the checklist is mechanical; validated over 6 real features). The driving session uses your session model: sonnet is the sweet spot — the state machine is deliberately mechanical — and opus-class models pay off only when the feature's *spec* needs deep design thought.
+- **Agent models** — set per agent in each definition's frontmatter `model:` field. The defaults are deliberate: `spec-writer` runs opus (drafting quality is the binding constraint — driver-drafted specs drew change requests on 4 of 6 real features, and every revision round costs a full opus review), `spec-reviewer` opus (one call per feature guarding the highest-leverage gate — cheap insurance), `implementer`/`test-writer` sonnet, `pr-reviewer` haiku (its inputs arrive pre-validated — green tests, clean build, driver-run license and surface-drift checks — and the checklist is mechanical; validated over 6 real features). The driving session uses your session model: sonnet is the sweet spot — the state machine is deliberately mechanical, and the spec's design thought is delegated to `spec-writer`, so spec quality no longer depends on the model you drive with.
 - **No GitHub** — the default flow opens a draft PR with `gh`. To drop it, edit `.claude/orchestrator/phases/phase-7.md`, `phase-8.md`, and `.claude/agents/pr-reviewer.md` to review the local diff and stop at the branch. The rest of the workflow is unaffected.
-- **Editing agent definitions** — on some setups Claude's file tools refuse to write files literally named `implementer.md`, `test-writer.md`, `spec-reviewer.md`, or `pr-reviewer.md`. If you hit it, edit the file in a normal text editor or the terminal, or write to a differently-named staging file and `mv` it into place. Nothing else is affected.
+- **Editing agent definitions** — on some setups Claude's file tools refuse to write files literally named `implementer.md`, `test-writer.md`, `spec-writer.md`, `spec-reviewer.md`, or `pr-reviewer.md`. If you hit it, edit the file in a normal text editor or the terminal, or write to a differently-named staging file and `mv` it into place. Nothing else is affected.

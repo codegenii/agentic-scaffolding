@@ -1,6 +1,6 @@
 # Conventions index
 
-Loaded by spec-reviewer and pr-reviewer, alongside `conventions/invariants.md`. implementer loads `conventions/coding.md` and test-writer `conventions/testing.md` instead — not this file.
+Loaded by spec-reviewer and pr-reviewer, alongside `conventions/invariants.md`. implementer loads `conventions/coding.md`, test-writer `conventions/testing.md`, and spec-writer `conventions/specs.md` instead — not this file.
 
 The project-specific invariants live in `.claude/agents/conventions/invariants.md` — the single authoritative copy. The section below is a review-time style baseline, not that list.
 
@@ -16,7 +16,8 @@ American English in all prose — word choice and spelling (favorite not favouri
 
 - `test-writer` writes test files (matching `${TEST_GLOB}`), nothing else.
 - `implementer` writes non-test source, never test files.
-- The feature-workflow driver writes specs and the spec registry.
+- `spec-writer` writes the draft feature spec named in its brief, nothing else.
+- The feature-workflow driver writes the spec registry.
 
 **Editorial spec edits are exempt** — behavior-neutral edits may be made directly by any session. See `docs/specs/README.md`.
 

@@ -63,7 +63,7 @@ Leave `${...}` variable *references* inside the `.claude/` files as they are —
 
 ## Step 3 — Optional: tighten agent tool permissions
 
-The four agent definitions grant `Bash` broadly. If the user wants tighter permissions, narrow the `tools:` list in `implementer.md`, `test-writer.md`, and `pr-reviewer.md` to the specific commands from `project.md` (e.g. `Bash(npm test:*)`). Otherwise leave `Bash` as-is. Ask once; default to leaving it.
+The agent definitions other than `spec-writer` grant `Bash` broadly. If the user wants tighter permissions, narrow the `tools:` list in `implementer.md`, `test-writer.md`, and `pr-reviewer.md` to the specific commands from `project.md` (e.g. `Bash(npm test:*)`). Otherwise leave `Bash` as-is. Ask once; default to leaving it.
 
 ## Step 4 — Verify the workflow is runnable
 

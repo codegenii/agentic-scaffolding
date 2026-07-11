@@ -25,7 +25,7 @@ Multiple Claude sessions may run against this repo at once — feature workflows
 
 ## The workflow
 
-Features follow a strict 8-phase TDD state machine driven by `.claude/orchestrator.md`: spec → spec review → add dependencies → interface skeleton → failing tests (red) → implementation (green) → PR review → mark ready. Specs are immutable once approved — a change is a new dated spec that supersedes the old one, never an edit. Four worker agents do the work under file-ownership boundaries: `spec-reviewer`, `implementer` (non-test source), `test-writer` (test files), `pr-reviewer`.
+Features follow a strict 8-phase TDD state machine driven by `.claude/orchestrator.md`: spec → spec review → add dependencies → interface skeleton → failing tests (red) → implementation (green) → PR review → mark ready. Specs are immutable once approved — a change is a new dated spec that supersedes the old one, never an edit. Five worker agents do the work under file-ownership boundaries: `spec-writer` (spec drafts), `spec-reviewer`, `implementer` (non-test source), `test-writer` (test files), `pr-reviewer`.
 
 ## Key design rules to preserve
 

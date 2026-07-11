@@ -16,7 +16,16 @@
    - On CONFIRM: set `<supersedes>` to `<original-path>`.
    - "Distinct feature": escalate — slug collides, must be changed.
    - No match: `<supersedes>` is none.
-6. Write `<spec>` from this template, filling each section per the prose rules in `.claude/agents/conventions/specs.md` (neutral tone, backend-agnostic Behavior rules, no Out-of-scope padding, backed rationale). Include the **Supersedes** header and **Supersession rationale** section only when `<supersedes>` is set.
+6. **Draft the spec — invoke `spec-writer`.** You never write the draft yourself. Assemble the brief per the Sub-agent invocation contract (absolute paths; the sub-agent shares no history) with all of:
+
+   - the spec template below, quoted verbatim;
+   - the invoker's **acceptance criteria** and **constraints**, verbatim;
+   - the **dropped scope** items from scope confirmation, verbatim (or "None.");
+   - **architecture context**: the target `${UNIT}`, interface, and constraints confirmed in step 4, plus the absolute paths of the subsystem doc(s) step 4 found relevant — the spec-writer reads those and only those;
+   - `<slug>`, the date, and the absolute path of `<spec>` — the one file the agent writes;
+   - when `<supersedes>` is set: the superseded spec's absolute path, with the instruction to include the **Supersedes** header and **Supersession rationale** section.
+
+   The spec-writer fills each template section per the prose rules in `.claude/agents/conventions/specs.md`, which it loads itself.
 
    ```markdown
    # <Unit> — SPEC
@@ -53,8 +62,8 @@
    Bulleted list, or "None." Each must be resolved before proceeding.
    ```
 
-7. If **Open questions** is non-empty, ask the human, fold the answers in, remove the section.
-8. **Prelint the spec.** Run these deterministic structural checks against `<spec>`. If any fails, fix the spec and re-run prelint — do not commit a spec that fails prelint. spec-reviewer's heavyweight evaluation comes in Phase 2 and should not be burned on issues this prelint can catch.
+7. If **Open questions** is non-empty, ask the human, then re-invoke `spec-writer` in revise mode with the questions and answers quoted verbatim — it folds the answers in and removes the section.
+8. **Prelint the spec.** Run these deterministic structural checks against `<spec>` yourself. If any fails, re-invoke `spec-writer` in revise mode with the failing checks quoted verbatim, then re-run prelint — do not commit a spec that fails prelint. Cap 3 revise rounds, then escalate. spec-reviewer's heavyweight evaluation comes in Phase 2 and should not be burned on issues this prelint can catch.
    - Required section headers present: `## Purpose`, `## Interface contract`, `## Behavior`, `## Test strategy`, `## Out of scope`, `## External dependencies`, `## Design rationale`, `## Open questions` (unless removed per step 7). When `<supersedes>` is set, `## Supersession rationale` is also required.
    - Every section body is non-empty. The literal `None.` is allowed only in **Out of scope**, **External dependencies**, and **Open questions**.
    - Each **External dependencies** entry matches `name@version — license` (em dash), or the section body is `None.`.

@@ -22,6 +22,14 @@ Deferred structural improvements, each as a self-contained prompt to run in a fr
 
 > Phase 6 exits green (tests + lint), then pr-reviewer immediately re-runs build, lint, and the full test suite. Evaluate passing Phase 6's evidence (commands run, exit codes, HEAD SHA) in the brief and having pr-reviewer re-run only `${TEST_CMD}` when HEAD matches the evidence SHA. Weigh against reviewer independence — keep the full re-run if the SHA differs or evidence is absent.
 
-## 6. Fit pr-reviewer's checklist to its model
+## 6. Split pr-reviewer's mechanical checks out (model bump NOT needed)
 
-> `pr-reviewer` runs on `haiku` but carries the widest checklist (toolchain, five finding sections, license resolution, surface-drift diffing). Either upgrade the model for review-critical projects, or split the mechanical parts out: license classification as a script the driver runs, surface-drift extraction as a deterministic step. Decide per project via a `${...}` variable in `project.md` if both options should stay available.
+> Evidence from rps-arena (6 features, 6 PRs): the haiku pr-reviewer produced substantive rule-by-rule reviews with real advisory findings and no attributable missed defects — keep `model: haiku`. The remaining improvement is cost/robustness, not capability: split license classification into a script the driver runs and surface-drift extraction into a deterministic diff step, so the reviewer's context shrinks and the mechanical parts can't be flubbed. Re-evaluate the model only if a downstream project's review evidence shows misses.
+
+## 7. Delegate Phase 1 spec drafting to an opus spec-writer agent
+
+> Today the driver session writes the spec itself in Phase 1, so spec quality depends on whatever model the user happens to drive with. Evidence from rps-arena: the opus spec-reviewer requested changes on 4 of 6 specs — drafting quality is the binding constraint, and each revision round costs a full opus review plus a driver revision turn. Add a `spec-writer` leaf agent (`model: opus`) invoked by Phase 1 step 6 with the template, acceptance criteria, constraints, dropped scope, and architecture context in the brief; the driver keeps prelint, registry, and commits. Update `orchestrator.md`'s agent list, the Task-call contract, `new-feature.md`, and `_conventions.md`'s loading note. Measure: spec-review revision rounds per feature should stay at or below the current 4-in-6 baseline.
+
+## 8. Drive feature sessions on a cheaper model (after #7)
+
+> The driver session is the largest token bucket — its full context re-enters on every turn across all 8 phases. The state machine is deliberately mechanical (objective gates, verbatim extraction, fixed commands), which suits a small model, but two constraints apply: spec drafting must first move to an opus leaf agent (#7), and haiku's 200K context risks mid-feature compaction on large features (sonnet's 1M does not). Experiment: run one full feature with the session on sonnet, then one on haiku; compare gate compliance (any skipped/misordered phase, wrong commit messages), escalation quality, and peak context size against an opus-driven baseline. Document the recommendation in CONTRIBUTING's Models bullet.

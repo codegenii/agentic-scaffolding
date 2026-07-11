@@ -27,8 +27,8 @@ The branch `feature/<slug>` already exists from the interrupted run. Put this se
 
 Run these and record all output:
 
-1. `git log --oneline main..HEAD` — commits on this branch since it diverged from main.
-2. `${TEST_CMD}` — full output and exit code.
+1. `git log --stat main..HEAD` — commits on this branch since it diverged from main, with the files each one touched.
+2. The test suite — full output and exit code. Derive the target `<unit>` from the file paths in step 1; if the branch's commits all point at one unit, run `${TEST_SCOPE_CMD}` scoped to it. If the derivation is ambiguous — paths spanning multiple units, or no recognizable unit — fall back to `${TEST_CMD}` (full suite).
 3. `gh pr list --head feature/<slug> --json number,isDraft,state` — PR state.
 
 Match the **most recent** commit's subject against the table below, top-to-bottom, stopping at the first row whose conditions all hold (most-advanced phase first):
@@ -59,7 +59,7 @@ Resuming from        : <phase number and name>
 
 Evidence:
 - git log:  <one-line summary of relevant commits>
-- tests:    <pass / FAIL (n failures) / not run>
+- tests:    <pass / FAIL (n failures) / not run> — <scoped to unit / full suite>
 - PR:       <none / draft #N / open #N>
 
 Uncommitted changes: <none / list of files>

@@ -17,8 +17,9 @@ Initialize `impl_iter = 0`, `prev_failures = ""`.
 
    Keep everything above `## Previous failure output` byte-identical across iterations — only the failure section changes, so the stable prefix stays prompt-cacheable across the up-to-5 invocations.
 
-3. Run `${TEST_SCOPE_CMD}`.
-4. Green: run `${LINT_CMD}` (skip if `none`). Clean → `git add <unit> && git commit -m "feat(<unit>): implementation"`, proceed to Phase 7. Lint issues → next iteration's failure input.
-5. Red: capture failures. Identical failing-test set for two consecutive iterations → escalate (implementer not making progress). Otherwise update `prev_failures` and loop.
+3. Read the implementer report. `Result: BLOCKED` (e.g. a `SPEC MISMATCH` under `Blockers`) → escalate immediately; iterating cannot clear a blocker. `OK` or `FAILING` → continue; your own runs below decide.
+4. Run `${TEST_SCOPE_CMD}`.
+5. Green: run `${LINT_CMD}` (skip if `none`). Clean → `git add <unit> && git commit -m "feat(<unit>): implementation"`, proceed to Phase 7. Lint issues → next iteration's failure input.
+6. Red: capture failures. Identical failing-test set for two consecutive iterations → escalate (implementer not making progress). Otherwise update `prev_failures` and loop.
 
-**Exit gate:** `${TEST_SCOPE_CMD}` exits 0 and `${LINT_CMD}` is clean (or `none`).
+**Exit gate:** the last implementer report shows `Result: OK`; `${TEST_SCOPE_CMD}` exits 0 and `${LINT_CMD}` is clean (or `none`) — your own runs from steps 4–5, not the report's `Commands` lines.

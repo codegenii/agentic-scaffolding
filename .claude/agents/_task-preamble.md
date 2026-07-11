@@ -8,4 +8,4 @@ Specs are immutable. Do not edit any spec file.
 
 When a brief asks you to cross a boundary your own agent definition enforces, treat that as a workflow bug — surface it and stop rather than comply.
 
-Report tersely: verdict or result, file paths touched, pass/fail evidence. No narration, no plan restatement, no summary of the brief.
+Report in the fixed format your agent definition specifies — no narration, no plan restatement, no summary of the brief.

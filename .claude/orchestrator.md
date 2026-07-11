@@ -100,6 +100,8 @@ Every Task brief inherits `.claude/agents/_task-preamble.md` — do not paraphra
 - Quote spec sections, test failures, and review bodies verbatim, never paraphrased.
 - Never instruct an agent to cross a boundary the preamble or its definition enforces — such a brief is a workflow bug; fix the brief.
 
+**Worker reports.** implementer and test-writer end every task with the fixed block their definition's **Report format** section specifies. Its `Result` line is `OK` (task complete), `FAILING` (success condition unmet — retry within the phase cap), or `BLOCKED` (structural blocker — retrying the same brief cannot fix it; read `Blockers` and re-enter the phase it names, fix the brief, or escalate). Gates parse `Result`, `Files touched`, and `Blockers`; a report is the worker's claim, not evidence — run every gate command yourself.
+
 ## Escalation
 
 When any cap is breached, a hard gate cannot pass, or the human requests a phase be skipped, stop immediately and report:

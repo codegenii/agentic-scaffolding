@@ -26,6 +26,7 @@ Initialize `review_iter = 0`.
 
      Volatile content (the findings) goes last so the brief's stable prefix stays prompt-cacheable across cycles.
 
+   - If the implementer report is `Result: BLOCKED`, escalate — a review finding that contradicts the spec needs human resolution.
    - Run `${TEST_SCOPE_CMD}` yourself. Green → `git commit -am "fix(<unit>): address review" && git push`, loop. Red → feed the failure into another implementer iteration (counts against `review_iter`).
 
 **Exit gate:** Verdict is `APPROVED` or `COMMENTED`.

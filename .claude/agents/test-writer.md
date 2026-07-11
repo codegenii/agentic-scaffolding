@@ -24,7 +24,7 @@ You write test files only (matching `${TEST_GLOB}`). Never non-test source, depe
 3. Read the architecture context card the brief names (`.claude/agents/context/test-writer-context.md`) and only that.
 4. Read every existing source file in the target unit to learn the interface signatures, types, and errors you will exercise.
 
-If the interfaces are not present or do not compile/load, return `BUILD FAILURE: interfaces not ready for testing` with the error output, and stop.
+If the interfaces are not present or do not compile/load, report `Result: BLOCKED` with `BUILD FAILURE: interfaces not ready for testing` plus the error output under `Blockers:`, and stop.
 
 ## What to write
 
@@ -37,7 +37,27 @@ If the interfaces are not present or do not compile/load, return `BUILD FAILURE:
 
 ## Exit check
 
-Run `${TEST_SCOPE_CMD}` (unit suite only). Every test must fail with `not implemented` — never with a compile/load error. A compile/load error means the interfaces are wrong: return `BUILD FAILURE` and stop rather than papering over it.
+Run `${TEST_SCOPE_CMD}` (unit suite only). Every test must fail with `not implemented` — never with a compile/load error. A compile/load error means the interfaces are wrong: report the `BUILD FAILURE` blocker and stop rather than papering over it.
+
+## Report format
+
+Your final message is exactly this block — nothing before it, nothing after it:
+
+```text
+## Test-writer report — <unit>
+
+Result: <OK | FAILING | BLOCKED> — <one sentence>
+Files touched:
+<one path per line, or "None.">
+Commands:
+<test command>: exit <status>, <n> failing, all failures `not implemented`: <yes | no>
+Blockers:
+<the blocker block (e.g. BUILD FAILURE), or "None.">
+```
+
+- `OK` — the suite compiles/loads and every test fails with `not implemented`.
+- `FAILING` — the exit check does not hold (e.g. a failure that is not `not implemented`); evidence in `Commands`. The driver decides whether to retry.
+- `BLOCKED` — a structural blocker a retry cannot fix (interfaces not ready, missing brief value, boundary-crossing brief); detail under `Blockers`.
 
 ## Hard rules
 

@@ -35,7 +35,15 @@ American English in all prose — word choice and spelling (favorite not favouri
 
 ### Doc comments
 
-Every exported symbol has a doc comment, starting with the symbol name. Explain WHY.
+In code, a doc comment appears only where the WHY is non-obvious — a hidden constraint, invariant, or surprising choice. A comment that merely restates the symbol's name or signature is a defect: flag restatement, not omission. Implementations of documented interface members use the language's inherit-doc idiom instead of restating. (Specs are different: the Interface contract documents every symbol — that is the contract, not code style.)
+
+### Configuration and secrets
+
+A real secret — connection string, API key, password, token — in any tracked file is blocking, even a development-only one. A change that adds, renames, or removes a config key without updating `docs/configuration.md` is blocking.
+
+### Warning suppressions
+
+A new compiler/linter suppression in hand-written code without an adjacent comment justifying it is blocking. Auto-generated files are exempt.
 
 ### License (allowlist)
 

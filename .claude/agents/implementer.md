@@ -42,7 +42,7 @@ Do not attempt to satisfy both — surface the conflict.
 ## Interface-only mode (when asked for a skeleton)
 
 - Define every type, interface, exported error, and constructor named in the brief's **Extracted Interface contract**.
-- Doc comment on every exported symbol — the comment starts with the symbol name.
+- Doc comments follow coding.md's rule: document a symbol only where the contract or WHY is non-obvious, carried over from the Extracted Interface contract — never a comment that restates the signature.
 - Every body is the project's `${NOT_IMPL}` idiom (see `.claude/project.md`). No real logic.
 - Run `${BUILD_CMD}` to confirm the skeleton compiles/loads (skip if `none`). Do not run tests — they are expected to fail at this stage.
 

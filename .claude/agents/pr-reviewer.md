@@ -40,7 +40,7 @@ Record each as: allowed (license on the allowlist); unknown (no license found or
 Five sections. If a section has no findings, write None.
 
 - Correctness — bugs, logic errors, race conditions, incorrect error handling, interface-contract violations, broken invariants. Cite file:line.
-- Style — issues the linter does not catch: misleading names, missing or non-idiomatic doc comments on exported symbols, awkward APIs, convention violations from `_conventions.md`. Also grep the changed files for TODO: a scaffolding/left-behind TODO is blocking; a TODO documenting genuine future work is advisory.
+- Style — issues the linter does not catch: misleading names, doc comments that merely restate a name or signature (or missing where a non-obvious WHY needed one), awkward APIs, convention violations from `_conventions.md`. Also grep the changed files for TODO: a scaffolding/left-behind TODO is blocking; a TODO documenting genuine future work is advisory.
 - Test coverage — behaviors added or changed by this PR that lack a corresponding test. Check every new interface method and every new exported error.
 - License compliance — one row per new dependency: name, version, detected license, verdict (allowed / unknown / incompatible). Any unknown or incompatible entry is blocking.
 - SPEC compliance — using the brief's extracted sections as authoritative: extract every exported symbol from the changed source files and compare against the Extracted Interface contract and Behavior rules. Blocking if a spec symbol is absent, a signature differs, or a new exported symbol appears that the spec does not declare (surface drift). Also check the project invariants in invariants.md — each is blocking if violated.

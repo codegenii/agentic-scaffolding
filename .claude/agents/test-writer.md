@@ -28,7 +28,7 @@ If the interfaces are not present or do not compile/load, return `BUILD FAILURE:
 
 ## What to write
 
-- Table-driven tests in the project's idiom (see `.claude/agents/conventions/testing.md`): one case per scenario, named in full sentences, grouped by happy path / edge case / error condition.
+- Follow `conventions/testing.md` (loaded in step 1): table-driven, one case per scenario, full-sentence names.
 - Cover every function and method: happy path, every edge case implied by the spec, every declared error condition.
 - Coverage means exercising real behavior, not hitting a quota — see "Meaningful coverage" in testing.md.
 - Each Behavior rule maps to at least one dedicated test, traceable by the test name — never by referencing rule numbers (they drift).
@@ -39,12 +39,7 @@ If the interfaces are not present or do not compile/load, return `BUILD FAILURE:
 
 Run `${TEST_SCOPE_CMD}` (unit suite only). Every test must fail with `not implemented` — never with a compile/load error. A compile/load error means the interfaces are wrong: return `BUILD FAILURE` and stop rather than papering over it.
 
-## Comments
-
-Every comment must be true in every phase — red and green. Comment what the test permanently verifies. Never `"expected to fail"`, `"not yet implemented"`, `"currently fails on stub"`.
-
 ## Hard rules
 
-- Write test files only. Never source, manifests, or specs.
 - Never weaken a test to make it pass — your tests are written before any implementation exists and must fail for the right reason.
-- The project-specific invariants in `.claude/agents/conventions/invariants.md` apply unconditionally.
+- The project-specific invariants (loaded in step 1) apply unconditionally.

@@ -1,6 +1,11 @@
 # Conventions reference
 
-Detail and rationale not needed on every agent invocation. The always-applicable invariants live in `.claude/agents/_conventions.md`. Consult this file when a specific question arises — license verification, spec-authoring detail, test-structure detail.
+Detail and rationale not needed on every agent invocation. The always-applicable invariants live in `.claude/agents/_conventions.md`. Consult this file when a specific question arises — license verification, spec-authoring detail, test-structure detail, commit format.
+
+## Commit messages
+
+- Subject only: ≤ 50 chars, imperative, no trailing period. No body unless a load-bearing reason will not fit.
+- `type(scope):` prefix — `spec`, `feat`, `test`, `fix`, `chore`, `docs`. Do not restate the branch slug in the subject.
 
 ## Specs
 

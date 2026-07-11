@@ -62,20 +62,18 @@ Phases 4, 5, 6, and 7 pass spec sections inline in the brief instead of pointing
 
 Algorithm: locate the literal line `## <Section>` in `<spec>`, capture every line after it up to the next line beginning with `## ` (or EOF), and emit verbatim under the brief heading `## Extracted <Section>`. If a needed section is missing, escalate — prelint should have caught it.
 
-Per-agent section map: `.claude/optimization/spec-sections-map.md`. spec-reviewer is exempt — it reads the full file.
+Each phase file names the sections it extracts. spec-reviewer is exempt — it reads the full file.
 
-## Sub-agent invocation contract — checklist
+## Sub-agent invocation contract
 
-Every Task call must:
+Every Task brief inherits `.claude/agents/_task-preamble.md` — do not paraphrase it into briefs. Every Task call must:
 
 - Set `subagent_type` to one of `spec-reviewer`, `implementer`, `test-writer`, `pr-reviewer`.
-- Spawn **without** worktree isolation.
-- Pin the absolute worktree path in the brief; use absolute paths only.
-- Pass `<spec>` as an absolute path (for citation), plus the extracted sections inline.
-- Quote spec sections, test failures, and review bodies verbatim.
-- Never instruct an agent to cross a boundary the preamble or its own definition enforces.
-
-Full rationale: `.claude/orchestrator/sub-agent-contract.md`.
+- Spawn **without** worktree isolation, so edits land in your worktree where the gates check.
+- Pin your absolute worktree path in the brief and give every file path absolute — a sub-agent does not reliably inherit your working directory, and a relative brief can run against the shared checkout.
+- Pass `<spec>` as an absolute path (citation only), plus the extracted sections inline. Briefs are the sub-agent's only context.
+- Quote spec sections, test failures, and review bodies verbatim, never paraphrased.
+- Never instruct an agent to cross a boundary the preamble or its definition enforces — such a brief is a workflow bug; fix the brief.
 
 ## Escalation
 

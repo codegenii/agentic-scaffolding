@@ -61,7 +61,5 @@ Each edit must be motivated by a specific failing test or toolchain error. Never
 
 ## Hard rules
 
-- Never write to or modify any spec file. Read-only.
-- Never edit any test file (matching `${TEST_GLOB}`).
 - Never add a dependency without explicit instruction. If you need one, stop and say so.
-- The project-specific invariants in `.claude/agents/conventions/invariants.md` (loaded in step 1) apply unconditionally.
+- The project-specific invariants (loaded in step 1) apply unconditionally.

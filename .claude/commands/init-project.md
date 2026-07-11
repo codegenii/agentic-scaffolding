@@ -74,7 +74,7 @@ The four agent definitions grant `Bash` broadly. If the user wants tighter permi
 Once `project.md` has no remaining `<...>` placeholders:
 
 1. Delete this command file: `rm .claude/commands/init-project.md`.
-2. Remove the template's setup guide if it rode along in the copy: `rm -f bootstrap-guide.md`. It documents bootstrapping *from* the template and does not belong in a project built *from* it.
+2. Remove template-development files if they rode along in the copy: `rm -f bootstrap-guide.md backlog.md`. They document the template itself and do not belong in a project built from it.
 3. Report what was filled in, and tell the user the project is ready: run `/new-feature <slug>` to start the first feature, or `/new-chore <desc>` for non-feature work.
 
 Do not commit — leave the populated files in the working tree for the user to review and commit themselves.

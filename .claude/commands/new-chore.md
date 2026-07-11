@@ -41,7 +41,7 @@ Carry out the chore in the worktree. Keep it to the stated scope. A chore is not
 
 ## Step 4 — Finish
 
-1. Commit on `chore/<slug>` with a `chore(<scope>): <summary>` subject per `.claude/agents/conventions/coding.md` — subject only, no body. `<scope>` is a short topical word, not the full slug.
+1. Commit on `chore/<slug>` with a `chore(<scope>): <summary>` subject per `.claude/agents/_conventions-reference.md` — subject only, no body. `<scope>` is a short topical word, not the full slug.
 2. Report the branch as unpushed and unmerged. Merging is a human decision — never merge or open a PR unless the user explicitly asks.
 3. Run `./scripts/sync-worktree-permissions.sh` to promote permissions approved during this chore into the main checkout.
 4. Call `ExitWorktree` with `action: "keep"`, so the branch and its commits remain for the user to review and land.

@@ -39,12 +39,7 @@ For each signature and error value in the **Interface contract**: parameter and 
 
 ### (c) Testability
 
-Every rule in **Behavior** must satisfy all three conditions from the **Specs** section of `_conventions-reference.md`:
-- **Testable in isolation** — a single test confirms or refutes it without depending on another rule's side effects. Otherwise blocking.
-- **Names the surface it constrains** — identifies the specific function, method, or command. Otherwise blocking.
-- **Falsifiable** — "returns reasonable results" is not testable; "returns `<NamedError>` when X" is. Vague rules are blocking.
-
-Also check the rule relies on observable output (return values, written bytes, exit codes, file state), not private internals.
+Every **Behavior** rule must meet all three conditions from the **Specs** section of `_conventions-reference.md` — testable in isolation, names the surface it constrains, falsifiable — and rely on observable output (return values, written bytes, exit codes, file state), not private internals. Each miss is blocking.
 
 **Test strategy check.** The spec must contain a **Test strategy** section classifying each Behavior rule **unit** or **integration**. An unclassified rule is blocking. If any rule is integration-only, the section must state how those tests are gated per `${INTEGRATION_GATE}` — silence is blocking. A unit rule whose only viable test needs live infrastructure is misclassified — blocking.
 

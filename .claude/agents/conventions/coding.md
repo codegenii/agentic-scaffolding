@@ -1,59 +1,40 @@
 # Coding conventions (implementer)
 
-Always-applicable rules for non-test source. These complement the project's formatter and linter (`${FORMAT_CMD}`, `${LINT_CMD}` in `.claude/project.md`) — they do not restate what those tools already enforce.
+Always-applicable rules for non-test source. They complement `${FORMAT_CMD}` and `${LINT_CMD}` (`.claude/project.md`) — they do not restate what those tools enforce.
 
 ## Language
 
-All prose — comments, doc strings, commit messages — uses American English: word choice and spelling (favorite, behavior, color, organize, canceled). State the rule, do not restate referenced files.
-
-## Commit messages
-
-- Subject only. ≤ 50 chars, imperative, no trailing period.
-- `type(scope):` prefix — `spec`, `feat`, `test`, `fix`, `chore`, `docs`.
-- No body unless a load-bearing reason will not fit in the subject.
-- Do not restate the branch name or slug in the subject — the scope already names it.
+All prose — comments, doc strings — uses American English spelling (behavior, color, canceled).
 
 ## Formatting and tooling
 
-- `${FORMAT_CMD}` and `${LINT_CMD}` must be clean before any commit (skip whichever is `none`).
-- `${BUILD_CMD}` must succeed before any commit (skip if `none`).
+- `${FORMAT_CMD}`, `${LINT_CMD}`, and `${BUILD_CMD}` must be clean before any commit (skip any set to `none`).
 - Follow the language's standard import/module ordering.
 
 ## Naming
 
-- Names describe roles, in the language's idiom. Avoid Hungarian notation and `I`-prefixed interface names unless the language community expects them.
-- Error and failure values are distinct and named, not described only as "an error".
+- Names describe roles, in the language's idiom. No Hungarian notation or `I`-prefixed interfaces unless the language community expects them.
 - Constructors and factories follow the language's standard naming.
 
 ## Doc comments
 
-- Add a doc comment only when the WHY is non-obvious — a hidden constraint, invariant, or reason for an otherwise-surprising choice. Trivial members (simple property getters, constructors that just assign parameters, one-line delegating methods) do not need one. A doc comment that only restates the symbol's name or signature is worse than no comment — omit it instead of writing it.
-- When implementing an interface member whose contract is already documented on the interface, use the language's inherit-doc idiom (e.g. `/// <inheritdoc />` in C#) instead of restating the same doc comment on the implementation; if the language has none, omit the comment.
-- No references to spec rule numbers — they drift. Name the behavior directly.
+- Only where the WHY is non-obvious — a hidden constraint, invariant, or surprising choice. Trivial members (getters, assign-only constructors, one-line delegators) get none. A comment restating the name or signature is worse than none — omit it.
+- Implementing a documented interface member: use the language's inherit-doc idiom (e.g. `/// <inheritdoc />`) instead of restating; if the language has none, omit.
+- Never reference spec rule numbers — they drift. Name the behavior.
 
 ## Errors
 
 - Wrap errors with context as the language idiom allows, preserving the original for typed comparison.
-- Compare errors by identity/type, never by matching message strings.
+- Compare errors by identity/type, never by message strings.
 - Distinct failure modes get distinct named errors.
 
 ## Configuration and secrets
 
-- Never commit an actual environment-variable value — connection strings, API keys, passwords, tokens — into a tracked config file, even a development-only or placeholder-looking one.
-- Leave the key absent or empty in the committed file, and supply the real value via the language's local-secret store, an environment variable, or another gitignored local-only file. Note how in a short comment near where the value is read.
-- Exception: a value that is provably never used to connect to anything real (e.g. a dummy connection string needed only so design-time tooling can parse a syntactically valid string, never opened at runtime) is fine — but say so explicitly in its doc comment.
-- `docs/configuration.md` is the canonical guide to every config key the project reads and how to supply it. When you add, rename, or remove a config key, update that guide in the same change so it never goes stale.
+- Never commit a real environment value — connection string, API key, password, token — into a tracked config file, even a development-only one. Leave the key absent or empty; supply the value via the language's local-secret store, an env var, or a gitignored local file, and note how near where it is read.
+- Exception: a value provably never used to connect to anything real (e.g. a dummy connection string that design-time tooling only parses) — say so in its doc comment.
+- `docs/configuration.md` is the canonical guide to every config key. Update it in the same change that adds, renames, or removes one.
 
 ## Warning suppressions
 
-- Avoid suppressing compiler or linter warnings (`#pragma warning disable`, `// eslint-disable`, `#[allow(...)]`, or the language's equivalent) in hand-written code — fix the underlying issue instead.
-- When a suppression is genuinely unavoidable, add a comment immediately above or beside it explaining why the warning doesn't apply and why the root cause can't be fixed instead.
-- This does not apply to files marked auto-generated by tooling (e.g. ORM migration snapshots) — never hand-edit those to add commentary; any suppression inside them is the tool's own boilerplate, not a choice made in this codebase.
-
-## File ownership
-
-You write non-test source files only. Never test files (matching `${TEST_GLOB}`), dependency manifests (`${DEP_MANIFEST}`), or specs.
-
-**Editorial spec edits are exempt** — behavior-neutral edits (typo, rename, clarification) may be made directly to keep the spec in step with code. See `docs/specs/README.md`.
-
-License allowlist for new dependencies: see `.claude/agents/_conventions-reference.md`.
+- No compiler/linter suppressions in hand-written code — fix the root cause. If genuinely unavoidable, justify it in an adjacent comment.
+- Auto-generated files (e.g. ORM migration snapshots) are exempt — never hand-edit them.

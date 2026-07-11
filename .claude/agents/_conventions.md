@@ -1,15 +1,8 @@
 # Conventions index
 
-This file is the pointer index. Individual conventions files are loaded by the agents that need them — do not load the others.
+Loaded by spec-reviewer and pr-reviewer, alongside `conventions/invariants.md`; consult `_conventions-reference.md` for the **Specs** detail and license allowlist. implementer loads `conventions/coding.md` and test-writer `conventions/testing.md` instead — not this file.
 
-| Agent | Files it loads |
-|---|---|
-| implementer | `.claude/project.md` + `conventions/coding.md` + `conventions/invariants.md` |
-| test-writer | `.claude/project.md` + `conventions/testing.md` + `conventions/invariants.md` |
-| spec-reviewer | this file (below) + `conventions/invariants.md` + `_conventions-reference.md` for the **Specs** section |
-| pr-reviewer | this file (below) + `conventions/invariants.md` + `_conventions-reference.md` for the **License** allowlist |
-
-The project-specific invariants every agent enforces live in `.claude/agents/conventions/invariants.md` — the single authoritative copy. The **Always-applicable invariants** section below is a separate, review-time style baseline, not that list.
+The project-specific invariants live in `.claude/agents/conventions/invariants.md` — the single authoritative copy. The section below is a review-time style baseline, not that list.
 
 ## Always-applicable invariants (spec-reviewer + pr-reviewer)
 
@@ -35,7 +28,7 @@ American English in all prose — word choice and spelling (favorite not favouri
 
 ### Doc comments
 
-In code, a doc comment appears only where the WHY is non-obvious — a hidden constraint, invariant, or surprising choice. A comment that merely restates the symbol's name or signature is a defect: flag restatement, not omission. Implementations of documented interface members use the language's inherit-doc idiom instead of restating. (Specs are different: the Interface contract documents every symbol — that is the contract, not code style.)
+In code, doc comments appear only where the WHY is non-obvious. Flag restatement (a comment echoing the name or signature), not omission. Implementations of documented interface members inherit docs, never restate. Specs are exempt: the Interface contract documents every symbol.
 
 ### Configuration and secrets
 

@@ -49,4 +49,4 @@ The feature workflow runs in **this** session — there is no separate "orchestr
    - **dropped scope** — items narrowed out in Step 3, if any. These prepopulate the spec's **Out of scope** section.
 4. Spawn `spec-reviewer` / `implementer` / `test-writer` / `pr-reviewer` via the Task tool as the workflow directs — without worktree isolation, so they operate in this worktree. Every Task brief inherits `.claude/agents/_task-preamble.md` — consult the orchestrator's "Sub-agent invocation contract" before composing one.
 
-Follow the TDD state machine exactly: spec → spec-review → interfaces → failing tests (red) → implementation (green) → PR review → mark ready. Do not skip or reorder phases.
+Follow the state machine exactly — no skipped or reordered phases.

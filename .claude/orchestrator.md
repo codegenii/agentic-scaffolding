@@ -86,7 +86,7 @@ Assembly rules:
 
 - Repeat the `## Extracted <Section>` block once per extracted section, in the order the phase's extraction step names them. One heading is renamed: the spec's `## Behavior` section is emitted as `## Extracted Behavior rules`. The workers match on these exact headings — never rename them.
 - Include the context-card line only for agents with a card in `.claude/agents/context/` (`implementer`, `test-writer`). `pr-reviewer` has none — omit the line.
-- Include the volatile block only where the phase declares one (Phase 6: `## Previous failure output`; Phase 7 fix-up: `## Review findings`). It is always the last block.
+- Include the volatile block only where the phase declares one (Phase 6: `## Previous failure output`; Phase 7 review: `## Phase 6 evidence`, present only while HEAD equals its recorded commit; Phase 7 fix-up: `## Review findings`). It is always the last block.
 - **Cache-prefix ordering.** Everything above the volatile block is the stable prefix. When a phase re-invokes the same brief (implementation iterations, review cycles), keep the stable prefix byte-identical — only the volatile block changes — so it stays prompt-cacheable.
 
 ## Sub-agent invocation contract

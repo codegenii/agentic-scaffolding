@@ -19,7 +19,18 @@ Initialize `impl_iter = 0`, `prev_failures = ""`.
 
 3. Read the implementer report. `Result: BLOCKED` (e.g. a `SPEC MISMATCH` under `Blockers`) → escalate immediately; iterating cannot clear a blocker. `OK` or `FAILING` → continue; your own runs below decide.
 4. Run `${TEST_SCOPE_CMD}`.
-5. Green: run `${LINT_CMD}` (skip if `none`). Clean → `git add <unit> && git commit -m "feat(<unit>): implementation"`, proceed to Phase 7. Lint issues → next iteration's failure input.
+5. Green: run `${LINT_CMD}`, then `${BUILD_CMD}` (skip either set to `none`; build runs here so the evidence block below covers the whole toolchain). Both clean → `git add <unit> && git commit -m "feat(<unit>): implementation"`, record the evidence block, proceed to Phase 7. Lint or build issues → next iteration's failure input.
 6. Red: capture failures. Identical failing-test set for two consecutive iterations → escalate (implementer not making progress). Otherwise update `prev_failures` and loop.
 
-**Exit gate:** the last implementer report shows `Result: OK`; `${TEST_SCOPE_CMD}` exits 0 and `${LINT_CMD}` is clean (or `none`) — your own runs from steps 4–5, not the report's `Commands` lines.
+**Phase 6 evidence block.** Assemble after the implementation commit, from your own step 4–5 runs — never from the implementer report:
+
+```text
+commit: <git rev-parse HEAD>
+test-scope (<resolved ${TEST_SCOPE_CMD}>): exit 0
+lint (<resolved ${LINT_CMD}>): exit 0, or none
+build (<resolved ${BUILD_CMD}>): exit 0, or none
+```
+
+Hold it in session state for Phase 7, which passes it in the pr-reviewer brief; SHA-matched, it lets the reviewer credit these runs instead of repeating build and lint. It is never committed — if the session ends before the first review, it is simply absent and the reviewer runs the full toolchain itself.
+
+**Exit gate:** the last implementer report shows `Result: OK`; `${TEST_SCOPE_CMD}` exits 0, `${LINT_CMD}` is clean (or `none`), and `${BUILD_CMD}` exits 0 (or `none`) — your own runs from steps 4–5, not the report's `Commands` lines.

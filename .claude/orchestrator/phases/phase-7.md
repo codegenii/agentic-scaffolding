@@ -13,7 +13,9 @@ Initialize `review_iter = 0`.
 
 1. Idempotency guard: if the latest review's commit (`gh pr view --json reviews -q '.reviews[-1].commit.oid'`) equals `git rev-parse HEAD`, do not re-invoke pr-reviewer — read that verdict and continue at step 2. Otherwise extract verbatim the `## Purpose`, `## Interface contract`, `## Behavior`, `## Out of scope`, and `## External dependencies` sections of `<spec>` and invoke `pr-reviewer` with the worker brief template (`orchestrator.md`). Instruction:
 
-   > Review the open draft PR for branch `<branch>`. Run the toolchain, diff against main, and post a single structured review via `gh pr review`. The extracted sections below are authoritative for SPEC-compliance checks.
+   > Review the open draft PR for branch `<branch>`. Verify the toolchain — run it yourself, or credit the driver-run commands in the `## Phase 6 evidence` section per your evidence rules when one is present below. Diff against main and post a single structured review via `gh pr review`. The extracted sections below are authoritative for SPEC-compliance checks.
+
+   Volatile section `## Phase 6 evidence`: include the block recorded at Phase 6 exit only if `git rev-parse HEAD` still equals its `commit` line; otherwise omit the section entirely — after a fix-up commit the reviewer must re-run the full toolchain, and a resumed session that never recorded the block must not reconstruct one from git history. Everything above the section stays byte-identical across cycles (stable prefix, prompt-cacheable).
 
 2. Read the latest verdict: `gh pr view --json reviews -q '.reviews[-1].state'`.
 3. `APPROVED` or `COMMENTED` → Phase 8.

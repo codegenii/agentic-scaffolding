@@ -66,7 +66,7 @@ Each phase file names the sections it extracts. spec-reviewer is exempt — it r
 
 ## Worker brief template
 
-Phases 4–7 assemble every worker brief from this skeleton. A phase file supplies only what varies: the agent, the instruction, the sections its extraction step names, and — where the phase declares one — a single volatile trailing section.
+Phases 4–7 assemble every worker brief from this skeleton. A phase file supplies only what varies: the agent, the instruction, the sections its extraction step names, and — where the phase declares them — its volatile trailing section(s).
 
 > `<instruction — the phase's task text, verbatim>`
 >
@@ -86,8 +86,8 @@ Assembly rules:
 
 - Repeat the `## Extracted <Section>` block once per extracted section, in the order the phase's extraction step names them. One heading is renamed: the spec's `## Behavior` section is emitted as `## Extracted Behavior rules`. The workers match on these exact headings — never rename them.
 - Include the context-card line only for agents with a card in `.claude/agents/context/` (`implementer`, `test-writer`). `pr-reviewer` has none — omit the line.
-- Include the volatile block only where the phase declares one (Phase 6: `## Previous failure output`; Phase 7 review: `## Phase 6 evidence`, present only while HEAD equals its recorded commit; Phase 7 fix-up: `## Review findings`). It is always the last block.
-- **Cache-prefix ordering.** Everything above the volatile block is the stable prefix. When a phase re-invokes the same brief (implementation iterations, review cycles), keep the stable prefix byte-identical — only the volatile block changes — so it stays prompt-cacheable.
+- Include volatile blocks only where the phase declares them, repeated once per declared section in the phase's order (Phase 6: `## Previous failure output`; Phase 7 review: `## License check`, `## Surface drift`, then `## Phase 6 evidence` — the last present only while HEAD equals its recorded commit; Phase 7 fix-up: `## Review findings`). They are always the last blocks.
+- **Cache-prefix ordering.** Everything above the first volatile block is the stable prefix. When a phase re-invokes the same brief (implementation iterations, review cycles), keep the stable prefix byte-identical — only the volatile blocks change — so it stays prompt-cacheable.
 
 ## Sub-agent invocation contract
 

@@ -34,8 +34,9 @@ substitutes with the target unit's path.
 
 | Variable | Value |
 |---|---|
-| `${SOURCE_GLOB}` | <source files, e.g. `src/**/*.ts` excluding tests> |
-| `${TEST_GLOB}` | <test files, e.g. `**/*.test.ts`> |
+| `${SOURCE_GLOB}` | <source file glob(s), space-separated, e.g. `src/**/*.ts` — scripts exclude `${TEST_GLOB}` matches> |
+| `${TEST_GLOB}` | <test file glob(s), space-separated, e.g. `**/*.test.ts`> |
+| `${EXPORT_PATTERN}` | <POSIX ERE matching a line that declares an exported/public symbol, e.g. `^export[[:space:]]` (TypeScript), `^pub[[:space:]]` (Rust); or `none`> |
 | `${NOT_IMPL}` | <skeleton stub idiom — MUST contain the literal text `not implemented`, e.g. `throw new Error("not implemented")`, `raise NotImplementedError("not implemented")`, `todo!("not implemented")`> |
 | `${INTEGRATION_GATE}` | <how integration tests are separated from unit tests — a test directory, a tag/marker, an env flag. State how to run unit-only and how to run integration-only.> |
 
@@ -45,8 +46,9 @@ substitutes with the target unit's path.
 |---|---|
 | `${LICENSE}` | <project license, e.g. MIT> |
 | `${LICENSE_ALLOWLIST}` | <allowed dependency licenses, e.g. MIT, BSD-2-Clause, BSD-3-Clause, Apache-2.0, ISC, MPL-2.0> |
-| `${DEP_MANIFEST}` | <dependency manifest file(s), e.g. `package.json` + lockfile> |
+| `${DEP_MANIFEST}` | <dependency manifest file(s), space-separated literal paths, e.g. `package.json package-lock.json`> |
 | `${DEP_ADD_CMD}` | <add a pinned dependency, e.g. `npm install <pkg>@<version>`> |
+| `${DEP_LICENSES_CMD}` | <print one `name version license` line per direct dependency — pipe a license tool into that shape; or `none`> |
 
 ## Notes
 
@@ -55,3 +57,11 @@ substitutes with the target unit's path.
   language-agnostic. Keep that substring in whatever idiom you choose.
 - If a command does not apply (no separate build step, no linter), set it to
   `none` and the phases will skip the corresponding gate.
+- `scripts/check-licenses.sh` and `scripts/surface-drift.sh` (driver-run at PR
+  review) parse `${DEP_MANIFEST}`, `${LICENSE_ALLOWLIST}`, `${DEP_LICENSES_CMD}`,
+  `${SOURCE_GLOB}`, `${TEST_GLOB}`, and `${EXPORT_PATTERN}` straight from the
+  tables above — keep those values literal (paths, globs, one command, one
+  regex), never prose. Leading/trailing whitespace is trimmed, so anchor
+  `${EXPORT_PATTERN}` with `[[:space:]]`, not a trailing space. Setting
+  `${DEP_LICENSES_CMD}` or `${EXPORT_PATTERN}` to `none` makes the matching
+  check report itself unavailable, which caps PR-review verdicts at comment.

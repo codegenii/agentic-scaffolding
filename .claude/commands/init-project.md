@@ -32,13 +32,15 @@ Ask the user for the following, in one batch where possible. Accept "none" for a
 - Source file glob.
 - Test file glob.
 - The skeleton "not implemented" idiom for this language — it must contain the literal text `not implemented`.
+- A POSIX extended regex matching a line that declares an exported/public symbol (used by `scripts/surface-drift.sh`), e.g. `^export[[:space:]]` for TypeScript — or none.
 - How integration tests are separated from unit tests (a directory, a tag/marker, an env flag), with the command to run unit-only and integration-only.
 
 **Dependencies and license**
 - License — **default `MIT`**. State the default and let the user override. If MIT, also ask for the copyright holder (default: the repo's git `user.name`).
 - Allowed dependency licenses (allowlist) — **default `MIT, BSD-2-Clause, BSD-3-Clause, Apache-2.0, ISC, MPL-2.0`**.
-- Dependency manifest file(s).
+- Dependency manifest file(s) — literal space-separated paths.
 - Command to add a pinned dependency.
+- Command printing one `name version license` line per direct dependency (used by `scripts/check-licenses.sh`) — shape a license tool's output with a pipe — or none.
 
 **Project specifics** (optional, can be filled later)
 - A one-paragraph architecture summary (subsystems, main extension points).

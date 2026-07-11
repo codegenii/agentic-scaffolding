@@ -54,6 +54,10 @@ promoted=$(jq -rs '
   [ (($src.ask   // []) - ($dst.ask   // [])) | .[] | "  + ask "   + . ]
   | .[]' "$SRC" "$DEST")
 
+# Filter out patterns with hardcoded worktree paths; they don't port to future worktrees.
+# Users should add the generic version manually (e.g., "Bash(git -C * ...)" not with full path).
+promoted=$(echo "$promoted" | grep -v '\.claude/worktrees' || true)
+
 if [[ -z "$promoted" ]]; then
   log "no new permissions to promote — main already covers this worktree"
   exit 0

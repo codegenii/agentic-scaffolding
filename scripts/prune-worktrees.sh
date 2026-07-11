@@ -13,14 +13,20 @@
 # than git's (patch-content equivalence, not graph ancestry) — so it is only
 # ever applied to branches whose content is provably already on main.
 #
-# "Merged" is detected by patch-id equivalence, not commit ancestry: this repo
-# integrates PRs via squash/rebase merge, so plain `git branch --merged`
-# (ancestry-based) never matches — the branch tip commit is never an ancestor
-# of main once its content lands as a brand-new squash commit. For each branch
-# we build a throwaway commit (branch tip's tree, parented on the branch/main
-# merge-base) and ask `git cherry` whether an equivalent patch already exists
-# on main. The throwaway commit is never attached to a ref; it's ordinary git
-# gc litter and disappears on the next gc.
+# "Merged" is detected two ways. First, plain ancestry: if the branch tip is
+# already reachable from main (fast-forward or rebase merge that preserves the
+# commits), it is merged, full stop. Second, for squash merges — where the
+# branch content lands as a brand-new commit and the tip is never an ancestor
+# of main — we fall back to patch-id equivalence: build a throwaway commit
+# (branch tip's tree, parented on the branch/main merge-base) and ask
+# `git cherry` whether an equivalent patch already exists on main. The
+# throwaway commit is never attached to a ref; it's ordinary git gc litter and
+# disappears on the next gc.
+#
+# The ancestry check must come first: for an ancestry-merged branch the
+# merge-base *is* the branch tip, so the synthetic commit's diff is empty, and
+# `git cherry` marks an empty patch "+" (not present) — a false negative that
+# would wrongly skip a genuinely merged branch.
 #
 # Run from the main checkout:  ./scripts/prune-worktrees.sh
 set -euo pipefail
@@ -53,6 +59,9 @@ git rev-parse --verify --quiet origin/main >/dev/null 2>&1 || base="main"
 # whether it landed via merge commit, rebase, or squash.
 is_merged() {
     local branch="$1" merge_base tree synthetic mark
+    # Fast path: branch tip already reachable from base (ff / rebase / merge
+    # commit). Covers everything git's own `--merged` would, empty diff or not.
+    git merge-base --is-ancestor "$branch" "$base" 2>/dev/null && return 0
     merge_base="$(git merge-base "$base" "$branch" 2>/dev/null)" || return 1
     tree="$(git rev-parse "$branch^{tree}" 2>/dev/null)" || return 1
     synthetic="$(git commit-tree "$tree" -p "$merge_base" -m _prune-check)"

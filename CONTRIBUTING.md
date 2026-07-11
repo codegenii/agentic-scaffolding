@@ -64,6 +64,7 @@ Every unit of work runs in its own git worktree on its own branch, so parallel s
 | `.claude/agents/` | The four worker agents, their conventions, and context cards. |
 | `.claude/agents/conventions/invariants.md` | The single source of project invariants. |
 | `docs/architecture.md` | Design index; subsystem detail under `docs/architecture/`. |
+| `docs/configuration.md` | How to supply configuration locally — secrets are never committed. |
 | `docs/decisions.md` | Why key choices were made (ADR-style). |
 | `docs/specs/` | Feature specs and the registry. |
 

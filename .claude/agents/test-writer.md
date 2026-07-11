@@ -30,6 +30,7 @@ If the interfaces are not present or do not compile/load, return `BUILD FAILURE:
 
 - Table-driven tests in the project's idiom (see `.claude/agents/conventions/testing.md`): one case per scenario, named in full sentences, grouped by happy path / edge case / error condition.
 - Cover every function and method: happy path, every edge case implied by the spec, every declared error condition.
+- Coverage means exercising real behavior, not hitting a quota — see "Meaningful coverage" in testing.md.
 - Each Behavior rule maps to at least one dedicated test, traceable by the test name — never by referencing rule numbers (they drift).
 - Honor the **Test strategy**: gate integration-classified tests per `${INTEGRATION_GATE}` so the unit suite stays free of live external services.
 - Use the fakes the Test strategy names. Never call real external services from unit tests.

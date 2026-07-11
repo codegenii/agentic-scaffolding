@@ -17,3 +17,5 @@ Common commands:
 - `/retro` — periodic process retrospective.
 
 Specs live in `docs/specs/` and are immutable once approved — a change is a new spec that supersedes the old one, never an edit. See `docs/architecture.md` for the design and `docs/decisions.md` for the reasoning behind key choices.
+
+Secrets (connection strings, credentials) are never committed — see [`docs/configuration.md`](docs/configuration.md) for how to supply configuration locally.

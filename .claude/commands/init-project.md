@@ -54,7 +54,7 @@ Write the answers into these files, replacing every placeholder:
 3. `.claude/agents/context/implementer-context.md` and `test-writer-context.md` — the architecture paragraph and the fakes description.
 4. `CLAUDE.md` — project name, tagline, and the "What this is" section.
 5. `README.md` — project name, tagline, and overview. This file is human- and GitHub-facing, so substitute the real values, not `${...}` tokens.
-6. `docs/architecture.md` and `docs/decisions.md` — replace the stub headers with the project's real summary (or leave as a stub the first feature will grow).
+6. `docs/architecture.md` and `docs/decisions.md` — replace the stub headers with the project's real summary (or leave as a stub the first feature will grow). Seed `docs/configuration.md`'s Quick start with how this stack supplies local secrets (its local-secret store, a gitignored `.env`, …) — the reference table grows as features add config keys.
 7. `LICENSE` — create it for the chosen license. For MIT (the default), write the standard MIT text with the current year and the copyright holder. For any other license, insert that license's standard text verbatim, or a clearly-marked placeholder if you cannot reproduce it, and tell the user to paste the official text.
 
 Leave `${...}` variable *references* inside the `.claude/` files as they are — they are resolved at read time from `project.md`, not substituted now. You are filling in `project.md`'s **values** and the prose stubs, not rewriting every reference.

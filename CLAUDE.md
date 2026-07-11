@@ -20,6 +20,7 @@ Multiple Claude sessions may run against this repo at once — feature workflows
 - Branch naming: `feature/<slug>` for features, `chore/<slug>` for chores.
 - Cleanup: once a branch is merged into `main`, run `./scripts/prune-worktrees.sh` from the main checkout to remove its worktree and delete the merged branch. It removes only merged branches and skips anything dirty or unmerged.
 - Permissions: a worktree created by a plain `git worktree add` lacks the main checkout's `.claude/settings.local.json`. Run `./scripts/setup-worktree.sh` from inside the new worktree to copy or merge those local permission grants.
+- **File paths in worktrees:** after entering a worktree, always use `./` or `$PWD/`-relative paths in Read/Edit/Write operations, never hardcoded absolute paths into the main checkout. Absolute main-checkout paths bypass the worktree and edit `main` by accident. When in doubt, run `pwd` and build paths relative to it.
 - Process health: run `/retro` after every handful of merges to catch corrective patterns early and apply small fixes before they compound.
 
 ## The workflow

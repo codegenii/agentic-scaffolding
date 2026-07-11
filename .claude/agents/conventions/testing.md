@@ -18,6 +18,10 @@ American English in test names, comments, helper names — word choice and spell
 - Use the language's standard structural-equality / diff helper for comparing composite values.
 - Mark shared assertion helpers as helpers in the language's idiom. Keep them file-private.
 
+## Meaningful coverage
+
+Every test must verify behavior that could actually fail for a reason worth catching — never something the compiler or language runtime already guarantees. Before writing a case, ask: is there a plausible code change that would make this assertion fail? If the only way to fail is "the language stopped working," don't write it. Coverage means exercising a symbol's real behavior — happy path, edge cases, declared errors — not a fixed quota of cases per symbol; a trivial one-line constructor or property getter needs exactly the case(s) that verify its one piece of behavior, nothing padded on top.
+
 ## Errors
 
 - Compare errors by identity/type, never by matching message strings.

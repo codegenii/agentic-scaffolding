@@ -19,7 +19,7 @@ You write source files only. Never write or modify test files (matching `${TEST_
 
 ## Before editing anything
 
-1. Read `.claude/project.md` for the build/test/lint commands and idioms, then `.claude/agents/conventions/coding.md` and `.claude/agents/conventions/invariants.md`, and apply all three to every file you touch. Those are the only conventions docs you need — do not load `_conventions.md`, `_conventions-reference.md`, or the testing conventions.
+1. Read `.claude/project.md` for the build/test/lint commands and idioms, then `.claude/agents/conventions/coding.md` and `.claude/agents/conventions/invariants.md`, and apply all three to every file you touch. Those are the only conventions docs you need — do not load `_conventions.md`, `conventions/specs.md`, or the testing conventions.
 2. Treat the brief's `## Extracted Interface contract` and `## Extracted Behavior rules` as the authoritative spec content. **Do not read the spec file** — the path is included for citation only.
 3. Read the architecture context card the brief names (`.claude/agents/context/implementer-context.md`). Do not load `docs/architecture.md`, `decisions.md`, or the subsystem docs unless the card points you to one.
 4. Read every existing source file in the target unit to learn what is already defined.

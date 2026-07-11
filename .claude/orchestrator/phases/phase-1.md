@@ -16,7 +16,7 @@
    - On CONFIRM: set `<supersedes>` to `<original-path>`.
    - "Distinct feature": escalate — slug collides, must be changed.
    - No match: `<supersedes>` is none.
-6. Write `<spec>` from this template, filling each section per the **Specs** prose rules in `.claude/agents/_conventions-reference.md` (neutral tone, backend-agnostic Behavior rules, no Out-of-scope padding, backed rationale). Include the **Supersedes** header and **Supersession rationale** section only when `<supersedes>` is set.
+6. Write `<spec>` from this template, filling each section per the prose rules in `.claude/agents/conventions/specs.md` (neutral tone, backend-agnostic Behavior rules, no Out-of-scope padding, backed rationale). Include the **Supersedes** header and **Supersession rationale** section only when `<supersedes>` is set.
 
    ```markdown
    # <Unit> — SPEC

@@ -20,7 +20,7 @@ You never edit files, never commit, and never run tests or builds. Your only out
 Load all of these in full before evaluating anything:
 
 1. `.claude/project.md` — the project's language, conventions, and license allowlist.
-2. `.claude/agents/_conventions.md` — style baseline — and `.claude/agents/conventions/invariants.md` — the project-specific invariants you enforce. Consult `.claude/agents/_conventions-reference.md` for the full license allowlist or the detailed spec-authoring rules.
+2. `.claude/agents/_conventions.md` — style baseline — `.claude/agents/conventions/specs.md` — the spec-authoring rules — and `.claude/agents/conventions/invariants.md` — the project-specific invariants you enforce.
 3. The spec file for this feature. The invoker passes the path. It is `docs/specs/<YYYY-MM-DD>-<slug>.md`. If no path was given, run `git diff main...HEAD --name-only -- docs/specs/` and use the single added file matching `<YYYY-MM-DD>-<slug>.md` (ignore `README.md` — that is the registry). If ambiguous, stop and ask.
 
 Also run `git diff main...HEAD` and note any files already changed on the branch — if source or test files exist beyond the spec file itself, flag that as blocking under **Phase hygiene**.
@@ -39,7 +39,7 @@ For each signature and error value in the **Interface contract**: parameter and 
 
 ### (c) Testability
 
-Every **Behavior** rule must meet all three conditions from the **Specs** section of `_conventions-reference.md` — testable in isolation, names the surface it constrains, falsifiable — and rely on observable output (return values, written bytes, exit codes, file state), not private internals. Each miss is blocking.
+Every **Behavior** rule must meet all three conditions from the **Behavior rules** section of `conventions/specs.md` — testable in isolation, names the surface it constrains, falsifiable — and rely on observable output (return values, written bytes, exit codes, file state), not private internals. Each miss is blocking.
 
 **Test strategy check.** The spec must contain a **Test strategy** section classifying each Behavior rule **unit** or **integration**. An unclassified rule is blocking. If any rule is integration-only, the section must state how those tests are gated per `${INTEGRATION_GATE}` — silence is blocking. A unit rule whose only viable test needs live infrastructure is misclassified — blocking.
 
@@ -49,7 +49,7 @@ Compare **Out of scope** against **Behavior** and the **Interface contract**: an
 
 ### (e) Convention compliance
 
-Against the `_conventions.md` baseline: naming, error naming, and constructor/factory naming follow it; test conventions stated in the spec do not contradict it.
+Against the `_conventions.md` baseline: naming, error naming, and constructor/factory naming follow it. Test conventions stated in the spec must not contradict `conventions/testing.md` — consult it only if the spec states any.
 
 **External dependencies check.** The spec must contain an **External dependencies** section. Each entry declares a license. Every license must appear in the `${LICENSE_ALLOWLIST}` (see `.claude/project.md` / `_conventions.md`). A forbidden or unknown license is blocking — a missing declaration is blocking. "None." is acceptable when the feature adds no dependencies.
 
@@ -63,7 +63,7 @@ Applies only when the spec carries a **Supersedes** header. If none, record "Not
 
 ### (g) Prose precision
 
-Audit against the **Specs** section of `_conventions-reference.md`. A `## Behavior` rule that holds only for one configured backend, not as a guarantee, is blocking. Tone lapses, `## Out of scope` padding, and unbacked `## Design rationale` claims are advisory.
+Audit against the **Prose precision** section of `conventions/specs.md`. A `## Behavior` rule that holds only for one configured backend, not as a guarantee, is blocking. Tone lapses, `## Out of scope` padding, and unbacked `## Design rationale` claims are advisory.
 
 ## Step 3 — Emit the verdict
 

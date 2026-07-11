@@ -1,6 +1,6 @@
 # Conventions index
 
-Loaded by spec-reviewer and pr-reviewer, alongside `conventions/invariants.md`; consult `_conventions-reference.md` for the **Specs** detail and license allowlist. implementer loads `conventions/coding.md` and test-writer `conventions/testing.md` instead — not this file.
+Loaded by spec-reviewer and pr-reviewer, alongside `conventions/invariants.md`. implementer loads `conventions/coding.md` and test-writer `conventions/testing.md` instead — not this file.
 
 The project-specific invariants live in `.claude/agents/conventions/invariants.md` — the single authoritative copy. The section below is a review-time style baseline, not that list.
 
@@ -40,4 +40,4 @@ A new compiler/linter suppression in hand-written code without an adjacent comme
 
 ### License (allowlist)
 
-This project is `${LICENSE}`. Allowed dependency licenses: `${LICENSE_ALLOWLIST}`. Anything else (GPL/LGPL/AGPL/SSPL/BUSL/CC-BY-SA and other copyleft or source-available) is forbidden. Detail in `_conventions-reference.md`.
+This project is `${LICENSE}`. Allowed dependency licenses: `${LICENSE_ALLOWLIST}`. Anything else (GPL/LGPL/AGPL/SSPL/BUSL/CC-BY-SA and other copyleft or source-available) is forbidden, transitive dependencies included; an unknown or ambiguous license is forbidden until verified.

@@ -28,7 +28,7 @@ The branch `feature/<slug>` already exists from the interrupted run. Put this se
 Run these and record all output:
 
 1. `git log --stat main..HEAD` — commits on this branch since it diverged from main, with the files each one touched.
-2. The test suite — full output and exit code. Derive the target `<unit>` from the file paths in step 1; if the branch's commits all point at one unit, run `${TEST_SCOPE_CMD}` scoped to it. If the derivation is ambiguous — paths spanning multiple units, or no recognizable unit — fall back to `${TEST_CMD}` (full suite).
+2. The test suite — full output and exit code. Derive the target `<unit>` from the file paths in the `git log --stat` output; if the branch's commits all point at one unit, run `${TEST_SCOPE_CMD}` scoped to it. If the derivation is ambiguous — paths spanning multiple units, or no recognizable unit — fall back to `${TEST_CMD}` (full suite).
 3. `gh pr list --head feature/<slug> --json number,isDraft,state` — PR state.
 
 Match the **most recent** commit's subject against the table below, top-to-bottom, stopping at the first row whose conditions all hold (most-advanced phase first):
@@ -73,7 +73,7 @@ Once the user replies YES, read `.claude/orchestrator.md` and drive it from the 
 
 - **Do not** run Phase 1's branch setup — the worktree is already on `feature/<slug>`.
 - **Do not** re-write or overwrite the spec unless the user explicitly instructs it. An approved spec is immutable — a change goes through Phase 1 supersede mode.
-- **Do** apply the Phase 6 entry gate (confirm red tests via `${TEST_CMD}`) before invoking the implementer, even on resume.
+- **Do** apply the Phase 6 entry gate (confirm red tests via `${TEST_SCOPE_CMD}`) before invoking the implementer, even on resume.
 - For a Phase 6 partial resume, pass the current test failure output as `prev_failures` in the first implementer invocation, and set `impl_iter` to 1.
 - For a Phase 7 partial resume, do not push again if the branch is already on remote, and do not create a new PR if one already exists.
 - Spawn workers via the Task tool without worktree isolation, so they operate in this worktree.

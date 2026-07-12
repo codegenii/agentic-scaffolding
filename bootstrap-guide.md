@@ -59,6 +59,8 @@ This is the final step of this guide, by design: `/init-project` interviews you,
 /init-project
 ```
 
+**Existing codebase?** `/init-project` notices (a dependency manifest, a `src/` tree, or prior history) and runs in adopt mode: it infers most of the answers below from manifests, CI config, the file tree, and your `LICENSE`, shows one prefilled table to confirm, merges its sections into your existing `README.md`/`CLAUDE.md`/docs instead of replacing them, and runs your test and build commands once to report the baseline — red is reported, not fixed.
+
 Have these answers ready:
 
 | It asks | Example (Node/TypeScript) | Example (Python) |

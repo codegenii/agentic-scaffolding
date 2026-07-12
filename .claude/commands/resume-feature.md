@@ -1,9 +1,21 @@
 ---
-argument-hint: <slug>
+argument-hint: <slug> [use sonnet | use opus]
 description: Resume an interrupted feature workflow
 ---
 
 You are resuming an interrupted feature workflow. The raw argument is: `$ARGUMENTS`. The workflow runs in **this** session — there is no separate "orchestrator" agent to spawn.
+
+## Step 0 — Driver model gate
+
+Same gate as `/new-feature`: features are driven on **haiku** by default; a feature started with `use sonnet` must be resumed with `use sonnet` (or `--sonnet`) in the arguments too, and `use opus` (or `--opus`) selects opus explicitly.
+
+1. Resolve the requested driver model from `$ARGUMENTS`: `sonnet` if it contains `use sonnet` or `--sonnet`, `opus` if it contains `use opus` or `--opus`, otherwise `haiku`.
+2. Compare against the model this session runs on (your system prompt names it). Match by family — any Haiku model satisfies `haiku`, any Sonnet satisfies `sonnet`, any Opus satisfies `opus`.
+3. On mismatch, stop before touching anything — you cannot switch the session model yourself — and tell the user:
+
+   > "Feature driving defaults to `<requested model>`. Run `/model <requested model>`, then re-run this exact `/resume-feature` command."
+
+4. On match, ignore the model directive for the remaining steps and proceed.
 
 ## Step 1 — Validate the slug
 

@@ -27,3 +27,13 @@ this section is the reasoning, the invariant is the rule.
 **Why.** Haiku's driver-token savings do not cover the cleanup cost of one mess-on-main incident. The floor: a stronger session model is a cost choice the operator made deliberately, not a correctness risk, so an exact family match would only add friction.
 
 **Trade-off.** Default feature runs spend more driver tokens. Accepted knowingly.
+
+## 2. The invariant list is hard-capped at 10 one-line imperatives
+
+**Context.** Every worker agent loads `.claude/agents/conventions/invariants.md` on every invocation, some on haiku. Instruction adherence decays with context depth, steeply on small models; each non-load-bearing line dilutes the rest and costs tokens in every run.
+
+**Choice.** The list is capped at 10 one-line imperatives, rationale-free. Overflow moves to the matching `conventions/*.md` file. Anything a hook, lint, or CI check can enforce is implemented there instead and shrinks to at most one line naming the check. The list's own hygiene rules are stated in the file and enforced by reviewers.
+
+**Why.** Short imperative lists survive deep contexts where long nuanced ones drift, and deterministic checks do not drift at all.
+
+**Trade-off.** The agent-visible rule loses its nuance; this log carries it. Accepted knowingly.

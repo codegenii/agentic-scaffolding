@@ -1,6 +1,6 @@
 # Test-writer architecture context
 
-Read `.claude/project.md` for the language, test command, and integration gate. Conventions and the project invariants are in `.claude/agents/conventions/testing.md` and `.claude/agents/conventions/invariants.md` — both already loaded per your agent definition step 1.
+Read `.claude/project.md` for the language, test command, and integration gate. Test conventions are in `.claude/agents/conventions/testing.md` — already loaded per your agent definition step 1. The project invariants are carried in your brief's `## Project invariants` section (step 2).
 
 ## Fakes
 

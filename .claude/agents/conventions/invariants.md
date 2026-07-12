@@ -1,6 +1,6 @@
 # Project-specific invariants
 
-The load-bearing rules every agent enforces. This is the single authoritative source — loaded by implementer, test-writer, spec-reviewer, and pr-reviewer alongside their role file. Reasoning lives in `docs/decisions.md` (see decision 2).
+The load-bearing rules every agent enforces. This is the single authoritative source — the feature driver pastes the invariant list into every worker brief (`## Project invariants`); spec-reviewer and pr-reviewer also read it directly. Reasoning lives in `docs/decisions.md` (see decisions 2 and 3).
 
 Rules for this list — reviewers flag any edit that breaks them:
 

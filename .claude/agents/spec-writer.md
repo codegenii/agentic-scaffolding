@@ -19,7 +19,7 @@ You write exactly one file: the draft spec at the absolute path the brief names.
 ## Before writing anything
 
 1. Read `.claude/project.md` for the project's language, stack, and license allowlist.
-2. Read `.claude/agents/conventions/specs.md` — the prose rules every section must satisfy — and `.claude/agents/conventions/invariants.md` — the project-specific invariants; anything they forbid is out of scope by default. Those are the only conventions docs you need — do not load `_conventions.md`, the coding conventions, or the testing conventions.
+2. Read `.claude/agents/conventions/specs.md` — the prose rules every section must satisfy — and take the project invariants from the brief's `## Project invariants` section; anything they forbid is out of scope by default. Only if the brief lacks that section, read `.claude/agents/conventions/invariants.md`. specs.md is the only conventions doc you load — do not load `_conventions.md`, the coding conventions, or the testing conventions.
 3. Read the architecture doc(s) the brief names — those and only those. Do not load `docs/architecture.md`, `docs/decisions.md`, or subsystem docs the brief does not name.
 4. In supersede mode (the brief names a superseded spec), read that spec in full.
 
@@ -65,4 +65,4 @@ Blockers:
 
 - Never resolve an ambiguity by inventing behavior — surface it as an Open question.
 - Never add surface or behavior beyond the acceptance criteria; anything extra a reviewer might expect is an Out-of-scope entry.
-- The project-specific invariants (loaded in step 2) apply unconditionally.
+- The project-specific invariants (step 2) apply unconditionally.

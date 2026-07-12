@@ -37,3 +37,13 @@ this section is the reasoning, the invariant is the rule.
 **Why.** Short imperative lists survive deep contexts where long nuanced ones drift, and deterministic checks do not drift at all.
 
 **Trade-off.** The agent-visible rule loses its nuance; this log carries it. Accepted knowingly.
+
+## 3. Worker briefs carry the invariant list inline
+
+**Context.** `invariants.md` sat 3rd–4th in every worker's warm-up read list — the position most likely skimmed as context fills. Decision 2 already caps it at 10 one-line imperatives, small enough to inline.
+
+**Choice.** The driver reads `.claude/agents/conventions/invariants.md` once at pre-flight and pastes the invariant list verbatim into every worker brief as a stable `## Project invariants` section inside the prompt-cacheable prefix. For implementer, test-writer, and spec-writer the brief section is authoritative and the file read is a fallback; spec-reviewer and pr-reviewer still read the file. The file stays the single authoritative source — this changed delivery, not ownership.
+
+**Why.** Content pasted into the brief gets read; a file mid-way through a load list may not. One driver read replaces a read per worker, and the stable placement keeps the section cacheable.
+
+**Trade-off.** The list is duplicated into every brief at assembly time; an edit to `invariants.md` mid-feature does not reach briefs already assembled. Accepted knowingly.

@@ -19,8 +19,8 @@ You write source files only. Never write or modify test files (matching `${TEST_
 
 ## Before editing anything
 
-1. Read `.claude/project.md` for the build/test/lint commands and idioms, then `.claude/agents/conventions/coding.md` and `.claude/agents/conventions/invariants.md`, and apply all three to every file you touch. Those are the only conventions docs you need — do not load `_conventions.md`, `conventions/specs.md`, or the testing conventions.
-2. Treat the brief's `## Extracted Interface contract` and `## Extracted Behavior rules` as the authoritative spec content. **Do not read the spec file** — the path is included for citation only.
+1. Read `.claude/project.md` for the build/test/lint commands and idioms, then `.claude/agents/conventions/coding.md`, and apply both to every file you touch. Those are the only conventions docs you need — do not load `_conventions.md`, `conventions/specs.md`, or the testing conventions.
+2. Treat the brief's `## Project invariants` as the project invariants, and its `## Extracted Interface contract` and `## Extracted Behavior rules` as the authoritative spec content. **Do not read the spec file** — the path is included for citation only. Only if the brief lacks `## Project invariants`, read `.claude/agents/conventions/invariants.md`.
 3. Read the architecture context card the brief names (`.claude/agents/context/implementer-context.md`). Do not load `docs/architecture.md`, `decisions.md`, or the subsystem docs unless the card points you to one.
 4. Read every existing source file in the target unit to learn what is already defined.
 5. Read every test file in the target unit to see the contract you must satisfy. Tests define correctness, not your judgement.
@@ -83,4 +83,4 @@ Blockers:
 ## Hard rules
 
 - Never add a dependency without explicit instruction. If you need one, stop and say so.
-- The project-specific invariants (loaded in step 1) apply unconditionally.
+- The project-specific invariants (step 2) apply unconditionally.

@@ -55,6 +55,7 @@ The skill enters the worktree for you. Run all checks below — stop and ask the
 3. `git fetch origin`, then `git rev-list --count HEAD..origin/${MAIN_BRANCH}` returns `0`.
 4. `gh auth status` reports authenticated.
 5. The supplied criteria name a target `${UNIT}`, or one is unambiguous from `docs/architecture.md`. If neither, ask the human and quote the architecture section.
+6. Read `.claude/agents/conventions/invariants.md` once and capture its invariant list — the file's final bullet list — verbatim. Every worker brief carries it as `## Project invariants`; same discipline as spec extraction: never paraphrase, never reorder.
 
 ## Spec section extraction (deterministic)
 
@@ -74,6 +75,10 @@ Phases 4–7 assemble every worker brief from this skeleton. A phase file suppli
 >
 > Architecture context card: `.claude/agents/context/<agent>-context.md` — read this and only this.
 >
+> ## Project invariants
+>
+> `<the invariant list captured at pre-flight, verbatim>`
+>
 > ## Extracted `<Section>`
 >
 > `<verbatim contents>`
@@ -86,6 +91,7 @@ Assembly rules:
 
 - Repeat the `## Extracted <Section>` block once per extracted section, in the order the phase's extraction step names them. One heading is renamed: the spec's `## Behavior` section is emitted as `## Extracted Behavior rules`. The workers match on these exact headings — never rename them.
 - Include the context-card line only for agents with a card in `.claude/agents/context/` (`implementer`, `test-writer`). `pr-reviewer` has none — omit the line.
+- `## Project invariants` appears in every brief, its bullets byte-identical to the pre-flight capture — never paraphrased, trimmed, or reordered.
 - Include volatile blocks only where the phase declares them, repeated once per declared section in the phase's order (Phase 6: `## Previous failure output`; Phase 7 review: `## License check`, `## Surface drift`, then `## Phase 6 evidence` — the last present only while HEAD equals its recorded commit; Phase 7 fix-up: `## Review findings`). They are always the last blocks.
 - **Cache-prefix ordering.** Everything above the first volatile block is the stable prefix. When a phase re-invokes the same brief (implementation iterations, review cycles), keep the stable prefix byte-identical — only the volatile blocks change — so it stays prompt-cacheable.
 
@@ -97,7 +103,7 @@ The leaf-agent rules live in each agent's definition — do not restate them in 
 - Spawn **without** worktree isolation, so edits land in your worktree where the gates check.
 - Pin your absolute worktree path in the brief and give every file path absolute — a sub-agent does not reliably inherit your working directory, and a relative brief can run against the shared checkout.
 - Pass `<spec>` as an absolute path (citation only), plus the extracted sections inline. Briefs are the sub-agent's only context.
-- Quote spec sections, test failures, and review bodies verbatim, never paraphrased.
+- Quote invariants, spec sections, test failures, and review bodies verbatim, never paraphrased.
 - Never instruct an agent to cross a boundary its definition enforces — such a brief is a workflow bug; fix the brief.
 
 **Worker reports.** implementer, test-writer, and spec-writer end every task with the fixed block their definition's **Report format** section specifies. Its `Result` line is `OK` (task complete), `FAILING` (success condition unmet — retry within the phase cap; implementer and test-writer only — spec-writer's gate is your prelint), or `BLOCKED` (structural blocker — retrying the same brief cannot fix it; read `Blockers` and re-enter the phase it names, fix the brief, or escalate). Gates parse `Result`, `Files touched`, and `Blockers`; a report is the worker's claim, not evidence — run every gate command yourself.

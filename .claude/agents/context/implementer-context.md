@@ -15,6 +15,6 @@ Point to docs/architecture.md and its subsystem pages for detail. -->
 <!-- If the project has designated pluggable interfaces or seams that must not
 be widened or bypassed, name them here. Otherwise delete this section. -->
 
-The project's invariants are in `.claude/agents/conventions/invariants.md` — already loaded per your agent definition step 1.
+The project's invariants are carried in your brief's `## Project invariants` section — see your agent definition step 2.
 
 Background reasoning, if needed: `docs/decisions.md`. Do not load it unless the brief asks.

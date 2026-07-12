@@ -22,6 +22,7 @@
    - the invoker's **acceptance criteria** and **constraints**, verbatim;
    - the **dropped scope** items from scope confirmation, verbatim (or "None.");
    - **architecture context**: the target `${UNIT}`, interface, and constraints confirmed in step 4, plus the absolute paths of the subsystem doc(s) step 4 found relevant — the spec-writer reads those and only those;
+   - the **project invariants** captured at pre-flight, under a `## Project invariants` heading, bullets verbatim;
    - `<slug>`, the date, and the absolute path of `<spec>` — the one file the agent writes;
    - when `<supersedes>` is set: the superseded spec's absolute path, with the instruction to include the **Supersedes** header and **Supersession rationale** section.
 

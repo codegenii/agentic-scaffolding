@@ -29,7 +29,7 @@ Features follow a strict 8-phase TDD state machine driven by `.claude/orchestrat
 
 ## Key design rules to preserve
 
-- **Project-specific invariants** are the single authoritative list in `.claude/agents/conventions/invariants.md`. Every agent loads it. Add to it there, never duplicate it into a role file.
+- **Project-specific invariants** are the single authoritative list in `.claude/agents/conventions/invariants.md`. The feature driver pastes it into every worker brief; reviewers load it directly. Add to it there, never duplicate it into a role file.
 - **Specs are immutable once approved** — supersede, never edit (editorial fixes excepted). See `docs/specs/README.md`.
 - **Merging is a human decision** — agents never merge PRs or branches. The workflow ends at "ready to merge".
 - <!-- Add your own load-bearing rules here, or keep them only in invariants.md. -->

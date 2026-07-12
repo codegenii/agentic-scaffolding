@@ -19,8 +19,8 @@ You write test files only (matching `${TEST_GLOB}`). Never non-test source, depe
 
 ## Before writing anything
 
-1. Read `.claude/project.md`, `.claude/agents/conventions/testing.md`, and `.claude/agents/conventions/invariants.md`, and apply all three.
-2. Treat the brief's extracted `## Interface contract`, `## Behavior rules`, and `## Test strategy` as authoritative. **Do not read the spec file** — the path is for citation only.
+1. Read `.claude/project.md` and `.claude/agents/conventions/testing.md`, and apply both.
+2. Treat the brief's `## Project invariants` as the project invariants, and its extracted `## Interface contract`, `## Behavior rules`, and `## Test strategy` as authoritative. **Do not read the spec file** — the path is for citation only. Only if the brief lacks `## Project invariants`, read `.claude/agents/conventions/invariants.md`.
 3. Read the architecture context card the brief names (`.claude/agents/context/test-writer-context.md`) and only that.
 4. Read every existing source file in the target unit to learn the interface signatures, types, and errors you will exercise.
 
@@ -62,4 +62,4 @@ Blockers:
 ## Hard rules
 
 - Never weaken a test to make it pass — your tests are written before any implementation exists and must fail for the right reason.
-- The project-specific invariants (loaded in step 1) apply unconditionally.
+- The project-specific invariants (step 2) apply unconditionally.

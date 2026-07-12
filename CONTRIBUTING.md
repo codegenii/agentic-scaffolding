@@ -63,7 +63,7 @@ Feature specs live in `docs/specs/` as `<date>-<slug>.md`, indexed by `docs/spec
 
 ## Invariants
 
-The load-bearing rules every change must preserve live in **one** file: `.claude/agents/conventions/invariants.md`. All five agents load it. Add rules there — never copy an invariant into a role file (the `/retro` command checks for that drift). The reasoning behind each invariant belongs in `docs/decisions.md`.
+The load-bearing rules every change must preserve live in **one** file: `.claude/agents/conventions/invariants.md`. The feature driver pastes its list into every worker brief (`## Project invariants`); spec-reviewer and pr-reviewer load the file directly. Add rules there — never copy an invariant into a role file (the `/retro` command checks for that drift). The reasoning behind each invariant belongs in `docs/decisions.md`.
 
 ## Working in parallel
 

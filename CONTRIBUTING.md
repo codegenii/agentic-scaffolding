@@ -98,3 +98,13 @@ Every unit of work runs in its own git worktree on its own branch, so parallel s
   The driver is not one of these — it runs on your session's model, gated by the commands. See [Driver model](#driver-model).
 - **No GitHub** — the default flow opens a draft PR with `gh`. To drop it, edit `.claude/orchestrator/phases/phase-7.md`, `phase-8.md`, and `.claude/agents/pr-reviewer.md` to review the local diff and stop at the branch. The rest of the workflow is unaffected.
 - **Editing agent definitions** — on some setups Claude's file tools refuse to write files literally named `implementer.md`, `test-writer.md`, `spec-writer.md`, `spec-reviewer.md`, or `pr-reviewer.md`. If you hit it, edit the file in a normal text editor or the terminal, or write to a differently-named staging file and `mv` it into place. Nothing else is affected.
+
+## Updating the workflow
+
+The installer is also the updater. `.claude/template-version` records which template commit this repo carries.
+
+1. Pull (or re-clone) the template checkout.
+2. From it, run `./scripts/install.sh /path/to/this-repo`.
+3. Review the pre-copy summary and the resulting `git diff`, then commit.
+
+Core workflow files you have not touched are updated in place. A core file you modified locally is kept and reported — re-run with `--force` to overwrite it; either way, reconciling your modifications with the template's changes is this repo's job. Stub files (`README.md`, `CLAUDE.md`, this file, the docs, `.claude/project.md`, the invariants and agent context cards) never update automatically — port template improvements into them by hand if you want them.

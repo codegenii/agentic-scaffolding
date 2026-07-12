@@ -37,7 +37,7 @@ git init /path/to/target-repo
 ./scripts/install.sh /path/to/target-repo
 ```
 
-Core workflow files (`.claude/`, `scripts/`, …) are installed; existing project files (`README.md`, `CLAUDE.md`, docs) are left untouched and reported, and `.gitignore` only gains its two required lines if missing. Pass `--force` to overwrite a core file that has diverged from the template. Re-running from an updated template clone pulls template updates the same way; the installed template commit is recorded in `.claude/template-version`.
+Core workflow files (`.claude/`, `scripts/`, …) are installed; existing project files (`README.md`, `CLAUDE.md`, docs) are left untouched and reported, and `.gitignore` only gains its two required lines if missing. The installed template commit is recorded in `.claude/template-version`, and re-running from a newer template clone is also how you update later: the run prints a pre-copy summary, refreshes core files you have not modified, and keeps locally modified ones unless you pass `--force`. See CONTRIBUTING.md → "Updating the workflow".
 
 The installer never touches your git history. Commit the scaffold — for a brand-new repo, set up `main` and a remote first:
 

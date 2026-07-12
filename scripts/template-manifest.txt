@@ -1,20 +1,21 @@
 # Template manifest — install payload boundary
 #
 # One "class<TAB>path" line per tracked file. Three classes:
-# - core: workflow itself, always installed and overwritable on template update
+# - core: workflow itself, always installed; on template update, unmodified
+#   copies are updated in place, locally modified copies need --force
 # - stub: project-owned starting points, installed only if absent, never overwritten
 # - template-dev: never installed, template development only
 #
 # Markdownlint config (stub): shared across all projects; installed as template default
 #   but marked stub so projects can fork their own dialect without fighting template updates.
 # Gitattributes (stub): LF endings are template-wide invariant, not project-specific.
+# Init-populated files (stub): /init-project fills project.md, invariants.md, and the
+#   agent context cards with project values — project-owned after init, so template
+#   updates must never overwrite them.
 
 core	.claude/agents/_conventions.md
 core	.claude/agents/_task-preamble.md
-core	.claude/agents/context/implementer-context.md
-core	.claude/agents/context/test-writer-context.md
 core	.claude/agents/conventions/coding.md
-core	.claude/agents/conventions/invariants.md
 core	.claude/agents/conventions/specs.md
 core	.claude/agents/conventions/testing.md
 core	.claude/agents/implementer.md
@@ -36,7 +37,6 @@ core	.claude/orchestrator/phases/phase-5.md
 core	.claude/orchestrator/phases/phase-6.md
 core	.claude/orchestrator/phases/phase-7.md
 core	.claude/orchestrator/phases/phase-8.md
-core	.claude/project.md
 core	docs/specs/README.md
 core	scripts/check-licenses.sh
 core	scripts/install.sh
@@ -44,6 +44,10 @@ core	scripts/prune-worktrees.sh
 core	scripts/setup-worktree.sh
 core	scripts/surface-drift.sh
 core	scripts/sync-worktree-permissions.sh
+stub	.claude/agents/context/implementer-context.md
+stub	.claude/agents/context/test-writer-context.md
+stub	.claude/agents/conventions/invariants.md
+stub	.claude/project.md
 stub	.gitattributes
 stub	.gitignore
 stub	.markdownlint.jsonc

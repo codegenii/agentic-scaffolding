@@ -15,6 +15,8 @@ Initialize `impl_iter = 0`, `prev_failures = ""`.
 
    > Implement the target `<unit>` to pass `${TEST_SCOPE_CMD}`. Run the test suite after each edit. Iterate until green.
 
+   **Brief skeleton:** instruction, spec-path line, implementer context-card line, `## Project invariants`, `## Extracted Interface contract`, `## Extracted Behavior rules`, `## Previous failure output`.
+
    Keep everything above `## Previous failure output` byte-identical across iterations — only the failure section changes, so the stable prefix stays prompt-cacheable across the up-to-5 invocations.
 
 3. Read the implementer report. `Result: BLOCKED` (e.g. a `SPEC MISMATCH` under `Blockers`) → escalate immediately; iterating cannot clear a blocker. `OK` or `FAILING` → continue; your own runs below decide.

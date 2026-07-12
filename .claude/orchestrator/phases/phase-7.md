@@ -22,6 +22,8 @@ Initialize `review_iter = 0`.
 
    > Review the open draft PR for branch `<branch>`. Verify the toolchain — run it yourself, or credit the driver-run commands in the `## Phase 6 evidence` section per your evidence rules when one is present below. The `## License check` and `## Surface drift` sections below are driver-run script output — transcribe them per your steps, do not redo them. Diff against ${MAIN_BRANCH} and post a single structured review via `gh pr review`. The extracted sections below are authoritative for SPEC-compliance checks.
 
+   **Brief skeleton:** instruction, spec-path line (no context-card line), `## Project invariants`, `## Extracted Purpose`, `## Extracted Interface contract`, `## Extracted Behavior rules`, `## Extracted Out of scope`, `## Extracted External dependencies`, `## License check`, `## Surface drift`, `## Phase 6 evidence` (when present).
+
    Volatile sections, the last blocks of the brief in this order:
 
    - `## License check` — script output verbatim, every cycle.
@@ -35,9 +37,11 @@ Initialize `review_iter = 0`.
 4. `CHANGES_REQUESTED`:
    - `review_iter += 1`. If `> 2`, escalate.
    - Body: `gh pr view --json reviews -q '.reviews[-1].body'`.
-   - Invoke `implementer` with the worker brief template (reuse the extracted `## Interface contract` and `## Behavior` from Phase 6). Volatile section `## Review findings`: the review body, pasted verbatim. Instruction:
+   - Invoke `implementer` with the worker brief template (reuse the extracted `## Interface contract` and `## Behavior` from Phase 6; on resume, re-extract from `<spec>`). Volatile section `## Review findings`: the review body, pasted verbatim. Instruction:
 
      > The PR reviewer requested changes on the draft PR. Address each finding in the review below. Run `${TEST_SCOPE_CMD}` and `${LINT_CMD}` and confirm both clean before stopping.
+
+     **Brief skeleton:** instruction, spec-path line, implementer context-card line, `## Project invariants`, `## Extracted Interface contract`, `## Extracted Behavior rules`, `## Review findings`.
 
      Volatile content (the findings) goes last so the brief's stable prefix stays prompt-cacheable across cycles.
 

@@ -8,6 +8,8 @@ Invoke `test-writer` with the worker brief template (`orchestrator.md`). Instruc
 
 > Read the interface files in `<unit>`. Write table-driven test files covering every function and method: happy path, every edge case implied by the spec, and every declared error condition. Honor the extracted **Test strategy** below — gate integration-classified tests per `${INTEGRATION_GATE}` in `.claude/project.md`. Confirm `${TEST_SCOPE_CMD}` (unit-tagged suite only) fails with `not implemented` on every test, never with a compile/load error.
 
+**Brief skeleton:** instruction, spec-path line, test-writer context-card line, `## Project invariants`, `## Extracted Interface contract`, `## Extracted Behavior rules`, `## Extracted Test strategy`.
+
 If the test-writer report is `BLOCKED` with `BUILD FAILURE: interfaces not ready for testing` under `Blockers`, re-enter Phase 4 with the error (counts against Phase 4's cap).
 
 **Exit gate:**

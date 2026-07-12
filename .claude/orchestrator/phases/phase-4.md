@@ -8,6 +8,8 @@ Invoke `implementer` with the worker brief template (`orchestrator.md`). Instruc
 
 > Produce only the interfaces, types, exported errors, and function/method stubs declared in the spec's **Interface contract**. Each body is the project's `${NOT_IMPL}` idiom (see `.claude/project.md`). Do not implement logic.
 
+**Brief skeleton:** instruction, spec-path line, implementer context-card line, `## Project invariants`, `## Extracted Interface contract`, `## Extracted Behavior rules`.
+
 **Exit gate:**
 - The implementer report shows `Mode: interface-only`, `Result: OK`, `Blockers: None.`
 - `git diff --stat` shows only the target `${UNIT}`, no test files (matching `${TEST_GLOB}`), and agrees with the report's `Files touched`.

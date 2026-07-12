@@ -36,7 +36,7 @@ The branch `feature/<slug>` already exists from the interrupted run. Put this se
    - Found anywhere else → stop and tell the user to free that checkout first.
    - Not found → run `git worktree add .claude/worktrees/resume-<slug> feature/<slug>`, then call `EnterWorktree` with `path: .claude/worktrees/resume-<slug>`.
 
-   This skill is the explicit instruction that authorizes `EnterWorktree`.
+   This skill is the explicit instruction that authorizes `EnterWorktree`. Then run `./scripts/setup-worktree.sh` to inherit the main checkout's permission grants; a failure is non-fatal — note it and continue.
 3. If `git status --porcelain` is non-empty, stop and report the uncommitted changes verbatim. Do not proceed until the working tree is clean.
 
 ## Step 3 — Detect the current phase

@@ -62,6 +62,8 @@ Once approved, determine today's date (YYYY-MM-DD) and enter a worktree:
 EnterWorktree name="retro-<date>"
 ```
 
+Then run `./scripts/setup-worktree.sh` to inherit the main checkout's permission grants; a failure is non-fatal — note it and continue.
+
 Rename its branch: `git branch -m chore/retro-<date>`.
 
 Apply each approved improvement as its own commit with subject `chore(retro): <short description>`. No body.

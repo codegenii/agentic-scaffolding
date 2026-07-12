@@ -7,7 +7,7 @@ You are starting a new feature workflow. The raw argument is: `$ARGUMENTS`.
 
 ## Step 0 — Driver model gate
 
-The driver's work is mechanical — objective gates, verbatim extraction, fixed commands — so features are driven on **haiku** by default. For a large feature, where haiku's 200K context risks mid-feature compaction (sonnet's 1M does not), the operator opts up by writing `use sonnet` (or `--sonnet`) anywhere in the arguments; `use opus` (or `--opus`) likewise selects opus explicitly.
+The driver's work is mechanical — objective gates, verbatim extraction, fixed commands — so features are driven on **haiku** by default. For a large feature, where haiku's 200K context risks mid-feature compaction (sonnet's 1M does not), the operator opts up by writing `use sonnet` (or `--sonnet`); `use opus` (or `--opus`) likewise selects opus explicitly. The canonical position is immediately after the slug, before the criteria — `/new-feature rate-limiter use sonnet Per-IP rate limiting on the public API.` — but honor the directive anywhere in the arguments.
 
 1. Resolve the requested driver model from `$ARGUMENTS`: `sonnet` if it contains `use sonnet` or `--sonnet`, `opus` if it contains `use opus` or `--opus`, otherwise `haiku`.
 2. Compare against the model this session runs on (your system prompt names it). Match by family — any Haiku model satisfies `haiku`, any Sonnet satisfies `sonnet`, any Opus satisfies `opus`.

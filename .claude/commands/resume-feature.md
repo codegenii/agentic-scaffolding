@@ -7,7 +7,7 @@ You are resuming an interrupted feature workflow. The raw argument is: `$ARGUMEN
 
 ## Step 0 — Driver model gate
 
-Same gate as `/new-feature`: features are driven on **haiku** by default; a feature started with `use sonnet` must be resumed with `use sonnet` (or `--sonnet`) in the arguments too, and `use opus` (or `--opus`) selects opus explicitly.
+Same gate as `/new-feature`: features are driven on **haiku** by default, with `use sonnet` (or `--sonnet`) and `use opus` (or `--opus`) as explicit opt-ups. The model is chosen per run, not locked at feature start — resuming on a bigger model than the one that started the feature is a normal move (a haiku-driven feature whose context grew too large resumes with `use sonnet`), and a feature started with `use sonnet` needs the directive again on resume. The canonical position is immediately after the slug — `/resume-feature rate-limiter use sonnet`.
 
 1. Resolve the requested driver model from `$ARGUMENTS`: `sonnet` if it contains `use sonnet` or `--sonnet`, `opus` if it contains `use opus` or `--opus`, otherwise `haiku`.
 2. Compare against the model this session runs on (your system prompt names it). Match by family — any Haiku model satisfies `haiku`, any Sonnet satisfies `sonnet`, any Opus satisfies `opus`.
@@ -31,9 +31,13 @@ The branch `feature/<slug>` already exists from the interrupted run. Put this se
    ```
    RESUME ERROR: branch feature/<slug> does not exist. Nothing to resume.
    ```
-2. Run `git worktree add .claude/worktrees/resume-<slug> feature/<slug>`. If it fails because the branch is already checked out elsewhere, stop and tell the user to free that worktree first.
-3. Call `EnterWorktree` with `path: .claude/worktrees/resume-<slug>` to switch this session into the worktree. This skill is the explicit instruction that authorizes the tool.
-4. If `git status --porcelain` is non-empty, stop and report the uncommitted changes verbatim. Do not proceed until the working tree is clean.
+2. Locate the branch's checkout: run `git worktree list --porcelain` and look for a worktree that already has `feature/<slug>` checked out — the usual leftover when the interrupted session was abandoned rather than cleaned up (e.g. a haiku run whose context overloaded).
+   - Found under `.claude/worktrees/` → reuse it: call `EnterWorktree` with that path and continue at step 3.
+   - Found anywhere else → stop and tell the user to free that checkout first.
+   - Not found → run `git worktree add .claude/worktrees/resume-<slug> feature/<slug>`, then call `EnterWorktree` with `path: .claude/worktrees/resume-<slug>`.
+
+   This skill is the explicit instruction that authorizes `EnterWorktree`.
+3. If `git status --porcelain` is non-empty, stop and report the uncommitted changes verbatim. Do not proceed until the working tree is clean.
 
 ## Step 3 — Detect the current phase
 

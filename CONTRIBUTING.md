@@ -6,10 +6,24 @@ This project uses a **spec-first, multi-agent TDD workflow** driven by Claude Co
 
 | Command | Use |
 |---|---|
-| `/new-feature <slug>` | Full spec → tests → implementation → PR workflow for a new feature. |
+| `/new-feature <slug> [use sonnet] <criteria>` | Full spec → tests → implementation → PR workflow for a new feature. |
 | `/new-chore <description>` | Isolated worktree for non-feature work (refactors, docs, config, dependency bumps). |
-| `/resume-feature <slug>` | Resume an interrupted feature — the phase is detected from git history. |
+| `/resume-feature <slug> [use sonnet]` | Resume an interrupted feature — the phase is detected from git history. |
 | `/retro` | Bounded process retrospective — proposes at most three small fixes. |
+
+Features are driven on **haiku** by default. To opt up, write the model directive **immediately after the slug**, before the feature prompt, so it never gets lost inside a long criteria text:
+
+```text
+/new-feature rate-limiter Per-IP rate limiting on the public API; must not touch the auth module.
+                                                        ← no directive: driven on haiku (default)
+
+/new-feature rate-limiter use sonnet Per-IP rate limiting on the public API; must not touch the auth module.
+                                                        ← large feature: driven on sonnet
+
+/resume-feature rate-limiter use sonnet                 ← resume an overloaded haiku run on sonnet
+```
+
+The directive names the model the *session* must run on. If your session is on a different model, the command stops before doing anything and tells you the exact `/model` command to run, then you re-run the same command. `use opus` (or `--opus`, `--sonnet`) works the same way. The choice is per run — a feature started on haiku can be resumed with `use sonnet` when its context grew too large.
 
 ## The feature workflow
 
@@ -72,6 +86,6 @@ Every unit of work runs in its own git worktree on its own branch, so parallel s
 ## Adapting the workflow
 
 - **Commands, globs, license** — all in `.claude/project.md`. Change them there, never in the phase files.
-- **Agent models** — set per agent in each definition's frontmatter `model:` field. The defaults are deliberate: `spec-writer` runs opus (drafting quality is the binding constraint — driver-drafted specs drew change requests on 4 of 6 real features, and every revision round costs a full opus review), `spec-reviewer` opus (one call per feature guarding the highest-leverage gate — cheap insurance), `implementer`/`test-writer` sonnet, `pr-reviewer` haiku (its inputs arrive pre-validated — green tests, clean build, driver-run license and surface-drift checks — and the checklist is mechanical; validated over 6 real features). The driving session uses your session model, and `/new-feature` / `/resume-feature` gate on it: **haiku** is the default — the state machine is deliberately mechanical, and the spec's design thought is delegated to `spec-writer`, so driver intelligence is not the binding constraint. Write `use sonnet` in the command's arguments for large features, where haiku's 200K context risks mid-feature compaction (sonnet's 1M does not), or `use opus` to opt up explicitly; on a mismatched session model the gate stops and tells you which `/model` to run.
+- **Agent models** — set per agent in each definition's frontmatter `model:` field. The defaults are deliberate: `spec-writer` runs opus (drafting quality is the binding constraint — driver-drafted specs drew change requests on 4 of 6 real features, and every revision round costs a full opus review), `spec-reviewer` opus (one call per feature guarding the highest-leverage gate — cheap insurance), `implementer`/`test-writer` sonnet, `pr-reviewer` haiku (its inputs arrive pre-validated — green tests, clean build, driver-run license and surface-drift checks — and the checklist is mechanical; validated over 6 real features). The driving session uses your session model, and `/new-feature` / `/resume-feature` gate on it: **haiku** is the default — the state machine is deliberately mechanical, and the spec's design thought is delegated to `spec-writer`, so driver intelligence is not the binding constraint. Opt up with `use sonnet` for large features, where haiku's 200K context risks mid-feature compaction (sonnet's 1M does not), or `use opus` — invocation examples are under Commands above.
 - **No GitHub** — the default flow opens a draft PR with `gh`. To drop it, edit `.claude/orchestrator/phases/phase-7.md`, `phase-8.md`, and `.claude/agents/pr-reviewer.md` to review the local diff and stop at the branch. The rest of the workflow is unaffected.
 - **Editing agent definitions** — on some setups Claude's file tools refuse to write files literally named `implementer.md`, `test-writer.md`, `spec-writer.md`, `spec-reviewer.md`, or `pr-reviewer.md`. If you hit it, edit the file in a normal text editor or the terminal, or write to a differently-named staging file and `mv` it into place. Nothing else is affected.

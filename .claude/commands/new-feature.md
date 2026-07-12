@@ -38,7 +38,7 @@ If additional text was supplied after the slug, treat it as the acceptance crite
 
 ## Step 3 — Confirm scope before drafting the spec
 
-Catch scope creep here, before the worktree exists. Read `docs/architecture.md` and `CLAUDE.md`, then list what the ask implies:
+Catch scope creep here, before the worktree exists. Read `.claude/project.md`, `docs/architecture.md`, and `CLAUDE.md`, then list what the ask implies:
 
 - **Units touched** — one `${UNIT}` by default, more than one needs justification.
 - **New surface** — interfaces, types, errors, commands.

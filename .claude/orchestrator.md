@@ -50,6 +50,7 @@ A feature slug plus acceptance criteria and constraints, supplied by the invoker
 
 The skill enters the worktree for you. Run all checks below — stop and ask the human if any fails. Do not try to recover.
 
+0. Read `.claude/project.md` — every `${VAR}` below resolves from it.
 1. **Isolated worktree, not the shared checkout.** `git rev-parse --git-dir` and `git rev-parse --git-common-dir` must return different paths. Equal paths = shared checkout: stop, do not run here.
 2. `git status --porcelain` is empty.
 3. `git fetch origin`, then `git rev-list --count HEAD..origin/${MAIN_BRANCH}` returns `0`.

@@ -1,5 +1,5 @@
 ---
-argument-hint: <slug> [criteria and constraints] [use sonnet | use opus]
+argument-hint: <slug> [criteria and constraints] [use haiku | use opus]
 description: Start a new feature workflow
 ---
 
@@ -7,13 +7,13 @@ You are starting a new feature workflow. The raw argument is: `$ARGUMENTS`.
 
 ## Step 0 — Driver model gate
 
-The driver's work is mechanical — objective gates, verbatim extraction, fixed commands — so features are driven on **haiku** by default. For a large feature, where haiku's 200K context risks mid-feature compaction (sonnet's 1M does not), the operator opts up by writing `use sonnet` (or `--sonnet`); `use opus` (or `--opus`) likewise selects opus explicitly. The canonical position is immediately after the slug, before the criteria — `/new-feature rate-limiter use sonnet Per-IP rate limiting on the public API.` — but honor the directive anywhere in the arguments.
+The driver holds the workflow's guardrails — worktree discipline, phase gates — across the longest transcript in the system, and instruction adherence decays with transcript depth, steeply on small models, so features are driven on **sonnet** by default. `use haiku` (or `--haiku`) opts down for short, shallow-transcript runs; `use opus` (or `--opus`) opts up. The canonical position is immediately after the slug, before the criteria — `/new-feature rate-limiter use haiku Per-IP rate limiting on the public API.` — but honor the directive anywhere in the arguments.
 
-1. Resolve the requested driver model from `$ARGUMENTS`: `sonnet` if it contains `use sonnet` or `--sonnet`, `opus` if it contains `use opus` or `--opus`, otherwise `haiku`.
-2. Compare against the model this session runs on (your system prompt names it). Match by family — any Haiku model satisfies `haiku`, any Sonnet satisfies `sonnet`, any Opus satisfies `opus`.
-3. On mismatch, stop before touching anything — you cannot switch the session model yourself — and tell the user:
+1. Resolve the requested driver model from `$ARGUMENTS`: `haiku` if it contains `use haiku` or `--haiku`, `opus` if it contains `use opus` or `--opus`, otherwise `sonnet` (`use sonnet` / `--sonnet` states the default explicitly).
+2. Compare against the model this session runs on (your system prompt names it). The expectation is a **floor**, matched by family: rank haiku < sonnet < opus, any higher tier above opus. The session passes when its family ranks at or above the requested model — a stronger session is the operator's deliberate cost choice, not a mismatch.
+3. If the session ranks below the requested model, stop before touching anything — you cannot switch the session model yourself — and tell the user:
 
-   > "This run expects the driver on `<requested model>` (default haiku; opt up with `use sonnet` / `use opus`), but this session runs on `<session model>` — a command cannot switch the session's model. Run `/model <requested model>`, then re-run this exact `/new-feature` command."
+   > "This run expects the driver on `<requested model>` or stronger (default sonnet; `use haiku` opts down, `use opus` opts up), but this session runs on `<session model>` — a command cannot switch the session's model. Run `/model <requested model>`, then re-run this exact `/new-feature` command."
 
 4. On match, strip the model directive from the argument text so it does not leak into the acceptance criteria, then proceed.
 

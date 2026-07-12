@@ -6,26 +6,26 @@ This project uses a **spec-first, multi-agent TDD workflow** driven by Claude Co
 
 | Command | Use |
 | --- | --- |
-| `/new-feature <slug> [use sonnet] <criteria>` | Full spec → tests → implementation → PR workflow for a new feature. |
+| `/new-feature <slug> [use haiku] <criteria>` | Full spec → tests → implementation → PR workflow for a new feature. |
 | `/new-chore <description>` | Isolated worktree for non-feature work (refactors, docs, config, dependency bumps). |
-| `/resume-feature <slug> [use sonnet]` | Resume an interrupted feature — the phase is detected from git history. |
+| `/resume-feature <slug> [use haiku]` | Resume an interrupted feature — the phase is detected from git history. |
 | `/retro` | Bounded process retrospective — proposes at most three small fixes. |
 
 ## Driver model
 
 The session you type `/new-feature` into **is** the driver — there is no separate orchestrator process, because only the top-level session can spawn the worker agents. Two consequences:
 
-- **The default is haiku.** Driving is mechanical — checking gates, composing briefs, running fixed commands — while the design thought happens in the workers, so driver intelligence is not the binding constraint.
-- **The directive is an assertion, not a switch.** A command cannot change the model your session runs on; only you can, with `/model`. `use sonnet` declares which model the run expects, and the command verifies it *before touching anything* — on a mismatch it stops and names the exact `/model` command to run. Switch, then re-run the same command.
+- **The default is sonnet.** Driver intelligence is not the binding constraint — long-horizon guardrail persistence is. The driver holds the workflow's guardrails (worktree discipline, phase gates) across the longest transcript in the system, and instruction adherence decays with transcript depth, steeply on small models: haiku drivers drifted off core instructions by ~50% context usage, well before compaction.
+- **The directive is an assertion, not a switch.** A command cannot change the model your session runs on; only you can, with `/model`. The directive declares which model the run expects, and the command verifies it *before touching anything* — on a mismatch it stops and names the exact `/model` command to run. The expectation is a floor: a session on a stronger model than requested passes.
 
-Opt up with `use sonnet` (or `--sonnet`) for large features — haiku's 200K context risks mid-feature compaction, sonnet's 1M does not — or with `use opus` (`--opus`). The choice is per run, not per feature: a haiku-started feature resumes with `use sonnet` once its context grows too large, and a sonnet-started feature needs the directive again on every resume.
+Opt down with `use haiku` (or `--haiku`) for short, shallow-transcript runs only — besides the drift risk, haiku's 200K context risks mid-feature compaction, sonnet's 1M does not. Opt up with `use opus` (`--opus`). The choice is per run, not per feature: directives never persist across resumes, so a haiku-opted feature resumes on the default sonnet unless the directive is repeated.
 
 Write the directive immediately after the slug, before the criteria, so it never gets lost in a long feature prompt:
 
 ```text
-/new-feature rate-limiter Per-IP rate limiting on the public API.             ← haiku (default)
-/new-feature rate-limiter use sonnet Per-IP rate limiting on the public API.  ← large feature: sonnet
-/resume-feature rate-limiter use sonnet                    ← resume an overloaded haiku run on sonnet
+/new-feature rate-limiter Per-IP rate limiting on the public API.            ← sonnet (default)
+/new-feature rate-limiter use haiku Per-IP rate limiting on the public API.  ← short run: haiku
+/resume-feature rate-limiter                     ← resumes on sonnet (directives don't persist)
 ```
 
 ## The feature workflow

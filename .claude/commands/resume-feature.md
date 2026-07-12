@@ -1,5 +1,5 @@
 ---
-argument-hint: <slug> [use sonnet | use opus]
+argument-hint: <slug> [use haiku | use opus]
 description: Resume an interrupted feature workflow
 ---
 
@@ -7,13 +7,13 @@ You are resuming an interrupted feature workflow. The raw argument is: `$ARGUMEN
 
 ## Step 0 — Driver model gate
 
-Same gate as `/new-feature`: features are driven on **haiku** by default, with `use sonnet` (or `--sonnet`) and `use opus` (or `--opus`) as explicit opt-ups. The model is chosen per run, not locked at feature start — resuming on a bigger model than the one that started the feature is a normal move (a haiku-driven feature whose context grew too large resumes with `use sonnet`), and a feature started with `use sonnet` needs the directive again on resume. The canonical position is immediately after the slug — `/resume-feature rate-limiter use sonnet`.
+Same gate as `/new-feature`: features are driven on **sonnet** by default, with `use haiku` (or `--haiku`) as the opt-down for short, shallow-transcript runs and `use opus` (or `--opus`) as the opt-up. The model is chosen per run, not locked at feature start — a directive never persists across resumes: a haiku-opted feature resumes on the default sonnet unless `use haiku` is repeated. The canonical position is immediately after the slug — `/resume-feature rate-limiter use haiku`.
 
-1. Resolve the requested driver model from `$ARGUMENTS`: `sonnet` if it contains `use sonnet` or `--sonnet`, `opus` if it contains `use opus` or `--opus`, otherwise `haiku`.
-2. Compare against the model this session runs on (your system prompt names it). Match by family — any Haiku model satisfies `haiku`, any Sonnet satisfies `sonnet`, any Opus satisfies `opus`.
-3. On mismatch, stop before touching anything — you cannot switch the session model yourself — and tell the user:
+1. Resolve the requested driver model from `$ARGUMENTS`: `haiku` if it contains `use haiku` or `--haiku`, `opus` if it contains `use opus` or `--opus`, otherwise `sonnet` (`use sonnet` / `--sonnet` states the default explicitly).
+2. Compare against the model this session runs on (your system prompt names it). The expectation is a **floor**, matched by family: rank haiku < sonnet < opus, any higher tier above opus. The session passes when its family ranks at or above the requested model — a stronger session is the operator's deliberate cost choice, not a mismatch.
+3. If the session ranks below the requested model, stop before touching anything — you cannot switch the session model yourself — and tell the user:
 
-   > "This run expects the driver on `<requested model>` (default haiku; opt up with `use sonnet` / `use opus`), but this session runs on `<session model>` — a command cannot switch the session's model. Run `/model <requested model>`, then re-run this exact `/resume-feature` command."
+   > "This run expects the driver on `<requested model>` or stronger (default sonnet; `use haiku` opts down, `use opus` opts up), but this session runs on `<session model>` — a command cannot switch the session's model. Run `/model <requested model>`, then re-run this exact `/resume-feature` command."
 
 4. On match, ignore the model directive for the remaining steps and proceed.
 
@@ -28,10 +28,12 @@ Extract the slug from `$ARGUMENTS` (first whitespace-delimited token). A valid s
 The branch `feature/<slug>` already exists from the interrupted run. Put this session in an isolated worktree on it:
 
 1. Run `git fetch origin`. If neither a local `feature/<slug>` nor `origin/feature/<slug>` exists, stop:
-```markdown
+
+   ```text
    RESUME ERROR: branch feature/<slug> does not exist. Nothing to resume.
-```markdown
-2. Locate the branch's checkout: run `git worktree list --porcelain` and look for a worktree that already has `feature/<slug>` checked out — the usual leftover when the interrupted session was abandoned rather than cleaned up (e.g. a haiku run whose context overloaded).
+   ```
+
+2. Locate the branch's checkout: run `git worktree list --porcelain` and look for a worktree that already has `feature/<slug>` checked out — the usual leftover when the interrupted session was abandoned rather than cleaned up (e.g. a run whose context overloaded).
    - Found under `.claude/worktrees/` → reuse it: call `EnterWorktree` with that path and continue at step 3.
    - Found anywhere else → stop and tell the user to free that checkout first.
    - Not found → run `git worktree add .claude/worktrees/resume-<slug> feature/<slug>`, then call `EnterWorktree` with `path: .claude/worktrees/resume-<slug>`.
@@ -67,7 +69,7 @@ If the observations do not fit any row cleanly, do not guess — report what you
 
 Present this and wait for explicit confirmation:
 
-```markdown
+```text
 Resume report — feature/<slug>
 
 Last completed phase : <phase number and name>
@@ -79,7 +81,7 @@ Evidence:
 - PR:       <none / draft #N / open #N>
 
 Uncommitted changes: <none / list of files>
-```text
+```
 
 Ask: "Does this look correct? Reply YES to resume, or tell me what to correct." If the user corrects the detected phase, update and re-report before proceeding.
 

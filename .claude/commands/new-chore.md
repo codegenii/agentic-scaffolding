@@ -28,6 +28,8 @@ If `EnterWorktree` reports the session is already in a worktree, stop and tell t
 
 Before touching any branch, confirm `EnterWorktree` actually isolated the session: `git rev-parse --git-dir` and `git rev-parse --git-common-dir` must return different paths. If they are equal, you are in the shared checkout: stop immediately and do not run `git branch -m`.
 
+Then run `./scripts/setup-worktree.sh` to inherit the main checkout's permission grants; a failure is non-fatal — note it and continue.
+
 Inside the worktree, rename its branch to `chore/<slug>`:
 
 - If a branch named `chore/<slug>` already exists, stop and tell the user — do not reuse or overwrite it.

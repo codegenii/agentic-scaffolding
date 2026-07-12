@@ -70,7 +70,7 @@ The load-bearing rules every change must preserve live in **one** file: `.claude
 Every unit of work runs in its own git worktree on its own branch, so parallel sessions never clobber each other. Keep the shared checkout clean on `main`.
 
 - After a branch merges, run `./scripts/prune-worktrees.sh` from the main checkout — it removes only merged worktrees and branches.
-- If a new worktree re-prompts for permissions, run `./scripts/setup-worktree.sh` inside it to inherit the main checkout's grants.
+- If a hand-made worktree re-prompts for permissions, run `./scripts/setup-worktree.sh` inside it to inherit the main checkout's grants (`/new-chore` and `/new-feature` do this automatically).
 - Run `/retro` after every handful of merges to catch corrective patterns early.
 
 ## Where things live

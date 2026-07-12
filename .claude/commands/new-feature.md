@@ -13,7 +13,7 @@ The driver's work is mechanical — objective gates, verbatim extraction, fixed 
 2. Compare against the model this session runs on (your system prompt names it). Match by family — any Haiku model satisfies `haiku`, any Sonnet satisfies `sonnet`, any Opus satisfies `opus`.
 3. On mismatch, stop before touching anything — you cannot switch the session model yourself — and tell the user:
 
-   > "Feature driving defaults to `<requested model>`. Run `/model <requested model>`, then re-run this exact `/new-feature` command."
+   > "This run expects the driver on `<requested model>` (default haiku; opt up with `use sonnet` / `use opus`), but this session runs on `<session model>` — a command cannot switch the session's model. Run `/model <requested model>`, then re-run this exact `/new-feature` command."
 
 4. On match, strip the model directive from the argument text so it does not leak into the acceptance criteria, then proceed.
 

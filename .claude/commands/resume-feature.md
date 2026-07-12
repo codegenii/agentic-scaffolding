@@ -13,7 +13,7 @@ Same gate as `/new-feature`: features are driven on **haiku** by default, with `
 2. Compare against the model this session runs on (your system prompt names it). Match by family — any Haiku model satisfies `haiku`, any Sonnet satisfies `sonnet`, any Opus satisfies `opus`.
 3. On mismatch, stop before touching anything — you cannot switch the session model yourself — and tell the user:
 
-   > "Feature driving defaults to `<requested model>`. Run `/model <requested model>`, then re-run this exact `/resume-feature` command."
+   > "This run expects the driver on `<requested model>` (default haiku; opt up with `use sonnet` / `use opus`), but this session runs on `<session model>` — a command cannot switch the session's model. Run `/model <requested model>`, then re-run this exact `/resume-feature` command."
 
 4. On match, ignore the model directive for the remaining steps and proceed.
 

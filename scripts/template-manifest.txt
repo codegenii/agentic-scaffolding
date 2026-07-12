@@ -14,7 +14,6 @@
 #   updates must never overwrite them.
 
 core	.claude/agents/_conventions.md
-core	.claude/agents/_task-preamble.md
 core	.claude/agents/conventions/coding.md
 core	.claude/agents/conventions/specs.md
 core	.claude/agents/conventions/testing.md

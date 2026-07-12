@@ -59,6 +59,6 @@ The feature workflow runs in **this** session — there is no separate "orchestr
    - **acceptance criteria** — the text from Step 2 (narrowed if Step 3 narrowed it). These become the **Behavior** rules of the spec.
    - **constraints** — the text from Step 2. These become the **Out of scope** and constraint notes in the **Interface contract**.
    - **dropped scope** — items narrowed out in Step 3, if any. These prepopulate the spec's **Out of scope** section.
-4. Spawn `spec-writer` / `spec-reviewer` / `implementer` / `test-writer` / `pr-reviewer` via the Task tool as the workflow directs — without worktree isolation, so they operate in this worktree. Every Task brief inherits `.claude/agents/_task-preamble.md` — consult the orchestrator's "Sub-agent invocation contract" before composing one.
+4. Spawn `spec-writer` / `spec-reviewer` / `implementer` / `test-writer` / `pr-reviewer` via the Task tool as the workflow directs — without worktree isolation, so they operate in this worktree. Consult the orchestrator's "Sub-agent invocation contract" before composing each brief.
 
 Follow the state machine exactly — no skipped or reordered phases.

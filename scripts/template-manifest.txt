@@ -39,6 +39,7 @@ core	.claude/orchestrator/phases/phase-8.md
 core	.claude/project.md
 core	docs/specs/README.md
 core	scripts/check-licenses.sh
+core	scripts/install.sh
 core	scripts/prune-worktrees.sh
 core	scripts/setup-worktree.sh
 core	scripts/surface-drift.sh

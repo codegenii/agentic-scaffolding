@@ -1,6 +1,6 @@
 # Bootstrapping a new project from this template
 
-This guide covers **one-time setup** — getting from an empty repo to a configured, running workflow. It ends at `/init-project`, which is where it removes itself. For everything after that — the phases, the agents, specs, invariants, parallel worktrees, adapting the workflow — read [CONTRIBUTING.md](CONTRIBUTING.md), which stays in your project.
+This guide covers **one-time setup** — getting from an empty or existing repo to a configured, running workflow. It ends at `/init-project`, and never leaves the template — the installer doesn't copy it. For everything after that — the phases, the agents, specs, invariants, parallel worktrees, adapting the workflow — read [CONTRIBUTING.md](CONTRIBUTING.md), which stays in your project.
 
 The template is language-agnostic. Everything stack-specific is a `${...}` variable resolved from one file, `.claude/project.md`. `/init-project` fills it from a short interview, and the same eight-phase workflow then drives any language.
 
@@ -10,27 +10,39 @@ The template is language-agnostic. Everything stack-specific is a `${...}` varia
 
 - **git** and a repo host. The default workflow opens draft PRs with the **GitHub CLI (`gh`)** — install and `gh auth login`. (Not using GitHub? See CONTRIBUTING.md → "Adapting the workflow".)
 - **Claude Code** open in the repo.
+- A local clone of this template.
 - Your project's own toolchain installed — whatever runs your tests, build, linter, formatter. The workflow shells out to these, it does not install them.
 
 ---
 
-## 1. Copy the template into an empty repo
+## 1. Install the template
 
-This repo *is* the template — bootstrapping means copying its files into a fresh repo, minus this repo's git history and this guide. From a local clone:
+Clone this template once:
 
 ```bash
-git clone --depth 1 <this-repo-url> my-project
-cd my-project
-rm -rf .git bootstrap-guide.md backlog.md   # drop the template's history and its dev files
-git init
-chmod +x scripts/*.sh
+git clone <this-repo-url> template-clone
+cd template-clone
 ```
 
-On a git host you can instead use **"Use this template"** (or fork). Either way you should end up with `.claude/`, `docs/`, `scripts/`, `CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, and `.gitignore` at the repo root. If `bootstrap-guide.md` or `backlog.md` rode along in the copy, don't worry — `/init-project` removes them as part of its self-destruct.
-
-The bundled `.gitignore` already excludes `.claude/settings.local.json` and `.claude/worktrees/`. Set up `main` and commit the scaffold:
+**Empty repo** — create it, then install:
 
 ```bash
+git init /path/to/target-repo
+./scripts/install.sh /path/to/target-repo
+```
+
+**Existing repo** — install straight in:
+
+```bash
+./scripts/install.sh /path/to/target-repo
+```
+
+Core workflow files (`.claude/`, `scripts/`, …) are installed; existing project files (`README.md`, `CLAUDE.md`, docs) are left untouched and reported, and `.gitignore` only gains its two required lines if missing. Pass `--force` to overwrite a core file that has diverged from the template. Re-running from an updated template clone pulls template updates the same way; the installed template commit is recorded in `.claude/template-version`.
+
+The installer never touches your git history. Commit the scaffold — for a brand-new repo, set up `main` and a remote first:
+
+```bash
+cd /path/to/target-repo
 git branch -M main
 git remote add origin <your-repo-url>
 git add -A && git commit -m "chore: scaffold project"
@@ -41,7 +53,7 @@ git push -u origin main
 
 ## 2. Run `/init-project` — the last step
 
-This is the final step of this guide, by design: `/init-project` interviews you, fills in the configuration, and on completion **self-destructs — removing itself and this guide** so the finished project carries no setup scaffolding. From here on your reference is `CONTRIBUTING.md`.
+This is the final step of this guide, by design: `/init-project` interviews you, fills in the configuration, and on completion **self-destructs — removing its own setup scaffolding** so the finished project carries none of it. From here on your reference is `CONTRIBUTING.md`.
 
 ```bash
 /init-project
@@ -83,7 +95,7 @@ git add -A && git commit -m "chore: initialize project config"
 
 ## What's next
 
-You're configured, and this guide is gone — `CONTRIBUTING.md` is your reference from here. Two things to do first:
+You're configured — `CONTRIBUTING.md` is your reference from here. Two things to do first:
 
 - **Set your invariants.** Flesh out `.claude/agents/conventions/invariants.md` with the rules every change must hold. Doing this before your first feature pays off — reviewers enforce them from then on. (CONTRIBUTING.md → "Invariants".)
 - **Build.** Run `/new-feature <slug>`. CONTRIBUTING.md walks the eight phases, the agents, and your three touchpoints — scope, spec approval, and merge.

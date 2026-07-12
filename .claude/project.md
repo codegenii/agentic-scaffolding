@@ -16,6 +16,7 @@ the table below.
 | `${LANGUAGE}` | <e.g. TypeScript, Python, Rust, Go> |
 | `${UNIT}` | <the unit of code a feature targets — "package", "module", "crate", "directory"> |
 | `${MODULE_PREFIX}` | <import/module path prefix, or "none"> |
+| `${MAIN_BRANCH}` | <default branch name, e.g. main, master; default `main`> |
 
 ## Commands
 

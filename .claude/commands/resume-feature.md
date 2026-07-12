@@ -43,7 +43,7 @@ The branch `feature/<slug>` already exists from the interrupted run. Put this se
 
 Run these and record all output:
 
-1. `git log --stat main..HEAD` — commits on this branch since it diverged from main, with the files each one touched.
+1. `git log --stat ${MAIN_BRANCH}..HEAD` — commits on this branch since it diverged from ${MAIN_BRANCH}, with the files each one touched.
 2. The test suite — full output and exit code. Derive the target `<unit>` from the file paths in the `git log --stat` output; if the branch's commits all point at one unit, run `${TEST_SCOPE_CMD}` scoped to it. If the derivation is ambiguous — paths spanning multiple units, or no recognizable unit — fall back to `${TEST_CMD}` (full suite).
 3. `gh pr list --head feature/<slug> --json number,isDraft,state` — PR state.
 
@@ -59,7 +59,7 @@ Match the **most recent** commit's subject against the table below, top-to-botto
 | `chore(...): add dependencies` | — | — | Phase 3 — Add dependencies | Phase 4 — Interface skeleton |
 | `spec(...): spec approved` | — | — | Phase 2 — SPEC review | Phase 3 — Add dependencies |
 | any other `spec(...): ...` commit | — | — | Phase 1 — Branch + spec | Phase 2 — SPEC review |
-| (no commits since main) | — | — | (none) | Phase 1 — Branch + spec |
+| (no commits since ${MAIN_BRANCH}) | — | — | (none) | Phase 1 — Branch + spec |
 
 If the observations do not fit any row cleanly, do not guess — report what you found and ask the user which phase to resume from. A `test(...)` head commit with **mixed** failures (not all `not implemented`) is one such case — it usually means uncommitted implementer work was lost or partially committed by hand.
 

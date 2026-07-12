@@ -6,8 +6,8 @@
 2. Set `<spec>` to `docs/specs/<YYYY-MM-DD>-<slug>.md`. This path is passed to every sub-agent.
 3. Put the worktree onto `<branch>` (invoker-supplied, else `feature/<slug>`). Run `git branch --show-current`:
    - detached HEAD → `git checkout -b <branch>`
-   - any branch other than `main` → `git branch -m <branch>` (renames in place, leaves no throwaway)
-   - `main` → escalate, you were not given an isolated worktree
+   - any branch other than `${MAIN_BRANCH}` → `git branch -m <branch>` (renames in place, leaves no throwaway)
+   - `${MAIN_BRANCH}` → escalate, you were not given an isolated worktree
 
    If `<branch>` already exists the command fails — escalate, do not reuse or overwrite.
 4. Read `docs/architecture.md` (the index) and `docs/decisions.md` to confirm the target `${UNIT}`, interface, and constraints in scope. From the index, follow the pointer to the subsystem doc(s) your feature targets — read only what is relevant.

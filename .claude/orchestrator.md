@@ -52,7 +52,7 @@ The skill enters the worktree for you. Run all checks below — stop and ask the
 
 1. **Isolated worktree, not the shared checkout.** `git rev-parse --git-dir` and `git rev-parse --git-common-dir` must return different paths. Equal paths = shared checkout: stop, do not run here.
 2. `git status --porcelain` is empty.
-3. `git fetch origin`, then `git rev-list --count HEAD..origin/main` returns `0`.
+3. `git fetch origin`, then `git rev-list --count HEAD..origin/${MAIN_BRANCH}` returns `0`.
 4. `gh auth status` reports authenticated.
 5. The supplied criteria name a target `${UNIT}`, or one is unambiguous from `docs/architecture.md`. If neither, ask the human and quote the architecture section.
 

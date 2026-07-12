@@ -52,7 +52,7 @@ Present the list and ask the user to confirm or narrow it. Anything dropped will
 
 The feature workflow runs in **this** session — there is no separate "orchestrator" agent to spawn. Only the top-level session can spawn the `spec-writer`, `spec-reviewer`, `implementer`, `test-writer`, and `pr-reviewer` worker agents, so this session drives the workflow itself.
 
-1. Call `EnterWorktree` to isolate this session in a fresh worktree branched from `origin/main`. This skill is the explicit instruction that authorizes the tool. If `EnterWorktree` reports the session is already in a worktree, stop and tell the user to run `/new-feature` from a normal session. Then run `./scripts/setup-worktree.sh` to inherit the main checkout's permission grants; a failure is non-fatal — note it and continue.
+1. Call `EnterWorktree` to isolate this session in a fresh worktree branched from `origin/${MAIN_BRANCH}`. This skill is the explicit instruction that authorizes the tool. If `EnterWorktree` reports the session is already in a worktree, stop and tell the user to run `/new-feature` from a normal session. Then run `./scripts/setup-worktree.sh` to inherit the main checkout's permission grants; a failure is non-fatal — note it and continue.
 2. Read `.claude/orchestrator.md` — the feature workflow — and drive it yourself, Phases 1 through 8. Its Phase 1 renames the worktree's branch to `feature/<slug>`.
 3. Use these inputs:
    - **slug** — `<slug>`, used as-is for the branch name `feature/<slug>`.

@@ -1,0 +1,55 @@
+# Template manifest — install payload boundary
+#
+# One "class<TAB>path" line per tracked file. Three classes:
+# - core: workflow itself, always installed and overwritable on template update
+# - stub: project-owned starting points, installed only if absent, never overwritten
+# - template-dev: never installed, template development only
+#
+# Markdownlint config (stub): shared across all projects; installed as template default
+#   but marked stub so projects can fork their own dialect without fighting template updates.
+# Gitattributes (stub): LF endings are template-wide invariant, not project-specific.
+
+core	.claude/agents/_conventions.md
+core	.claude/agents/_task-preamble.md
+core	.claude/agents/context/implementer-context.md
+core	.claude/agents/context/test-writer-context.md
+core	.claude/agents/conventions/coding.md
+core	.claude/agents/conventions/invariants.md
+core	.claude/agents/conventions/specs.md
+core	.claude/agents/conventions/testing.md
+core	.claude/agents/implementer.md
+core	.claude/agents/pr-reviewer.md
+core	.claude/agents/spec-reviewer.md
+core	.claude/agents/spec-writer.md
+core	.claude/agents/test-writer.md
+core	.claude/commands/init-project.md
+core	.claude/commands/new-chore.md
+core	.claude/commands/new-feature.md
+core	.claude/commands/resume-feature.md
+core	.claude/commands/retro.md
+core	.claude/orchestrator.md
+core	.claude/orchestrator/phases/phase-1.md
+core	.claude/orchestrator/phases/phase-2.md
+core	.claude/orchestrator/phases/phase-3.md
+core	.claude/orchestrator/phases/phase-4.md
+core	.claude/orchestrator/phases/phase-5.md
+core	.claude/orchestrator/phases/phase-6.md
+core	.claude/orchestrator/phases/phase-7.md
+core	.claude/orchestrator/phases/phase-8.md
+core	.claude/project.md
+core	docs/specs/README.md
+core	scripts/check-licenses.sh
+core	scripts/prune-worktrees.sh
+core	scripts/setup-worktree.sh
+core	scripts/surface-drift.sh
+core	scripts/sync-worktree-permissions.sh
+stub	.gitattributes
+stub	.gitignore
+stub	.markdownlint.jsonc
+stub	CLAUDE.md
+stub	CONTRIBUTING.md
+stub	README.md
+stub	docs/architecture.md
+stub	docs/configuration.md
+stub	docs/decisions.md
+template-dev	bootstrap-guide.md

@@ -13,14 +13,14 @@ Initialize `review_iter = 0`.
 
 1. Idempotency guard: if the latest review's commit (`gh pr view --json reviews -q '.reviews[-1].commit.oid'`) equals `git rev-parse HEAD`, do not re-invoke pr-reviewer — read that verdict and continue at step 2. Otherwise run the two driver-side check scripts from the worktree root, capturing each output verbatim:
 
-   - `./scripts/check-licenses.sh main` → the `## License check` block.
-   - `./scripts/surface-drift.sh main` → the `## Surface drift` block.
+   - `./scripts/check-licenses.sh ${MAIN_BRANCH}` → the `## License check` block.
+   - `./scripts/surface-drift.sh ${MAIN_BRANCH}` → the `## Surface drift` block.
 
    Exit 2 from either script is a configuration bug (a `project.md` value missing or still a placeholder) — escalate. Exit 0 or 1: include the output; the verdict belongs to the reviewer.
 
    Then extract verbatim the `## Purpose`, `## Interface contract`, `## Behavior`, `## Out of scope`, and `## External dependencies` sections of `<spec>` and invoke `pr-reviewer` with the worker brief template (`orchestrator.md`). Instruction:
 
-   > Review the open draft PR for branch `<branch>`. Verify the toolchain — run it yourself, or credit the driver-run commands in the `## Phase 6 evidence` section per your evidence rules when one is present below. The `## License check` and `## Surface drift` sections below are driver-run script output — transcribe them per your steps, do not redo them. Diff against main and post a single structured review via `gh pr review`. The extracted sections below are authoritative for SPEC-compliance checks.
+   > Review the open draft PR for branch `<branch>`. Verify the toolchain — run it yourself, or credit the driver-run commands in the `## Phase 6 evidence` section per your evidence rules when one is present below. The `## License check` and `## Surface drift` sections below are driver-run script output — transcribe them per your steps, do not redo them. Diff against ${MAIN_BRANCH} and post a single structured review via `gh pr review`. The extracted sections below are authoritative for SPEC-compliance checks.
 
    Volatile sections, the last blocks of the brief in this order:
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Remove git worktrees and branches whose work is already merged into main.
+# Remove git worktrees and branches whose work is already merged into the default branch.
 #
 # Safe by design: removes only branches whose content is already present on
-# main, never the main checkout, never `git worktree remove --force`. Dirty
+# the default branch, never the main checkout, never `git worktree remove --force`. Dirty
 # or unmerged work is skipped and reported. Commits nothing, pushes nothing,
 # merges nothing.
 #
@@ -11,7 +11,7 @@
 # matter how thoroughly it was actually reviewed and merged. -D is gated
 # entirely on this script's own is_merged() check below, which is stricter
 # than git's (patch-content equivalence, not graph ancestry) — so it is only
-# ever applied to branches whose content is provably already on main.
+# ever applied to branches whose content is provably already on the default branch.
 #
 # "Merged" is detected two ways. First, plain ancestry: if the branch tip is
 # already reachable from main (fast-forward or rebase merge that preserves the
@@ -50,10 +50,15 @@ if [ "$top_level" != "$main_path" ]; then
 fi
 
 if ! git fetch origin --quiet 2>/dev/null; then
-    echo "Warning: could not fetch origin; checking against local main, which may be stale." >&2
+    echo "Warning: could not fetch origin; checking against local default branch, which may be stale." >&2
 fi
-base="origin/main"
-git rev-parse --verify --quiet origin/main >/dev/null 2>&1 || base="main"
+
+# Detect the default branch from remote HEAD; fall back to origin/main, then main.
+base="$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/||' || true)"
+if [ -z "$base" ]; then
+    base="origin/main"
+fi
+git rev-parse --verify --quiet "$base" >/dev/null 2>&1 || base="main"
 
 # True if branch $1's content is already present on $base, regardless of
 # whether it landed via merge commit, rebase, or squash.
@@ -91,9 +96,10 @@ done
 
 # --- Step 3: delete merged branches ----------------------------------------
 
+default_branch="${base##*/}"
 while IFS= read -r branch; do
     [ -z "$branch" ] && continue
-    if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
+    if [ "$branch" = "$default_branch" ]; then
         continue
     fi
     if ! is_merged "$branch"; then

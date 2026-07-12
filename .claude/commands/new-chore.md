@@ -22,7 +22,7 @@ A chore runs in its own git worktree on its own branch so it never collides with
 
 ## Step 2 — Enter an isolated worktree
 
-Call `EnterWorktree` to create a fresh worktree branched from `origin/main`. This skill is the explicit instruction that authorizes the tool — the current working tree need not be clean or on `main`, since the worktree is cut from `origin/main` regardless.
+Call `EnterWorktree` to create a fresh worktree branched from `origin/${MAIN_BRANCH}`. This skill is the explicit instruction that authorizes the tool — the current working tree need not be clean or on `${MAIN_BRANCH}`, since the worktree is cut from `origin/${MAIN_BRANCH}` regardless.
 
 If `EnterWorktree` reports the session is already in a worktree, stop and tell the user to run `/new-chore` from a normal session.
 

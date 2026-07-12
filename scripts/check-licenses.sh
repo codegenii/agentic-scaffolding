@@ -11,8 +11,9 @@
 # direct dependency, or none). Values must be literal — see project.md Notes.
 #
 # Usage (from the repo/worktree root): ./scripts/check-licenses.sh [base-ref]
-# base-ref defaults to main. The output is pasted verbatim into the
-# pr-reviewer brief's "## License check" section.
+# base-ref defaults to the remote default branch, falling back to main if
+# detection fails. The output is pasted verbatim into the pr-reviewer brief's
+# "## License check" section.
 #
 # Exit codes: 0 — all rows allowed, dependencies unchanged, or check
 # unavailable (${DEP_LICENSES_CMD} is none); 1 — at least one unknown or
@@ -22,7 +23,13 @@
 set -euo pipefail
 
 PROJECT_MD=".claude/project.md"
-base="${1:-main}"
+
+# Detect the default branch; fall back to main if detection fails.
+if [ -n "${1:-}" ]; then
+    base="$1"
+else
+    base="$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || echo "main")"
+fi
 
 fail_config() { echo "License check: config error — $1" >&2; exit 2; }
 
@@ -49,7 +56,7 @@ done
 
 git rev-parse --verify --quiet "$base" >/dev/null \
     || { base="origin/$base"; git rev-parse --verify --quiet "$base" >/dev/null; } \
-    || fail_config "base ref not found: ${1:-main}"
+    || fail_config "base ref not found: $base"
 
 # shellcheck disable=SC2086 # manifest is a space-separated path list
 if [ -z "$(git diff --name-only "$base...HEAD" -- $manifest)" ]; then

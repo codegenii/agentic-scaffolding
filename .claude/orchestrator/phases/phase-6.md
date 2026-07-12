@@ -29,7 +29,7 @@ commit: <git rev-parse HEAD>
 test-scope (<resolved ${TEST_SCOPE_CMD}>): exit 0
 lint (<resolved ${LINT_CMD}>): exit 0, or none
 build (<resolved ${BUILD_CMD}>): exit 0, or none
-```
+```text
 
 Hold it in session state for Phase 7, which passes it in the pr-reviewer brief; SHA-matched, it lets the reviewer credit these runs instead of repeating build and lint. It is never committed — if the session ends before the first review, it is simply absent and the reviewer runs the full toolchain itself.
 

@@ -72,7 +72,7 @@ Audit against the **Prose precision** section of `conventions/specs.md`. A `## B
 
 Output in exactly this format:
 
-```
+```markdown
 ## Spec review — <slug>
 
 ### (a) Interface completeness
@@ -104,7 +104,7 @@ APPROVE / REQUEST CHANGES — one-sentence summary.
 
 Blocking findings: <n>
 Advisory findings: <n>
-```
+```text
 
 ## Hard rules
 

@@ -10,12 +10,12 @@ Stack-specific commands appear below as `${TEST_CMD}`, `${BUILD_CMD}`, etc. Reso
 
 Phases execute in this order, strictly:
 
-```
+```markdown
 Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6 → Phase 7 → Phase 8
 SPEC      SPEC      Add deps  Interface Failing   Impl      PR        Mark
           review    (opt.)    skeleton  tests     loop      review    ready
                                         (RED)     (GREEN)
-```
+```text
 
 Phase 3 runs every cycle but is a no-op when the spec's **External dependencies** section is "None." — its exit gate passes immediately and no commit is made.
 
@@ -106,7 +106,7 @@ Every Task brief inherits `.claude/agents/_task-preamble.md` — do not paraphra
 
 When any cap is breached, a hard gate cannot pass, or the human requests a phase be skipped, stop immediately and report:
 
-```
+```markdown
 ESCALATION: <reason — cap breached / gate failed / phase-skip requested>
 Phase:     <current phase name and number>
 Branch:    <branch>

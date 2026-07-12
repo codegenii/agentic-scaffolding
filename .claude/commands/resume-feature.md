@@ -28,9 +28,9 @@ Extract the slug from `$ARGUMENTS` (first whitespace-delimited token). A valid s
 The branch `feature/<slug>` already exists from the interrupted run. Put this session in an isolated worktree on it:
 
 1. Run `git fetch origin`. If neither a local `feature/<slug>` nor `origin/feature/<slug>` exists, stop:
-   ```
+```markdown
    RESUME ERROR: branch feature/<slug> does not exist. Nothing to resume.
-   ```
+```markdown
 2. Locate the branch's checkout: run `git worktree list --porcelain` and look for a worktree that already has `feature/<slug>` checked out — the usual leftover when the interrupted session was abandoned rather than cleaned up (e.g. a haiku run whose context overloaded).
    - Found under `.claude/worktrees/` → reuse it: call `EnterWorktree` with that path and continue at step 3.
    - Found anywhere else → stop and tell the user to free that checkout first.
@@ -67,7 +67,7 @@ If the observations do not fit any row cleanly, do not guess — report what you
 
 Present this and wait for explicit confirmation:
 
-```
+```markdown
 Resume report — feature/<slug>
 
 Last completed phase : <phase number and name>
@@ -79,7 +79,7 @@ Evidence:
 - PR:       <none / draft #N / open #N>
 
 Uncommitted changes: <none / list of files>
-```
+```text
 
 Ask: "Does this look correct? Reply YES to resume, or tell me what to correct." If the user corrects the detected phase, update and re-report before proceeding.
 

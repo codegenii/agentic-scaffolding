@@ -43,14 +43,14 @@ git push -u origin main
 
 This is the final step of this guide, by design: `/init-project` interviews you, fills in the configuration, and on completion **self-destructs — removing itself and this guide** so the finished project carries no setup scaffolding. From here on your reference is `CONTRIBUTING.md`.
 
-```
+```bash
 /init-project
 ```
 
 Have these answers ready:
 
 | It asks | Example (Node/TypeScript) | Example (Python) |
-|---|---|---|
+| --- | --- | --- |
 | Project name + tagline | `Acme API — billing service` | same shape |
 | Language / stack | `TypeScript (Node 20)` | `Python 3.12` |
 | Unit word | `package` | `module` |

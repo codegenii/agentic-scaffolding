@@ -1,0 +1,49 @@
+{
+  // Markdownlint configuration for this project
+  // Style choices: strict formatting for consistency and readability
+
+  "default": true,
+
+  // MD001: heading levels should increase by one level at a time
+  "MD001": true,
+
+  // MD003: heading style consistency
+  "MD003": {
+    "style": "consistent"
+  },
+
+  // MD004: unordered list indentation
+  "MD004": {
+    "style": "consistent"
+  },
+
+  // MD007: unordered list indentation depth
+  "MD007": {
+    "indent": 2
+  },
+
+  // MD013: line length (disabled for flexibility)
+  "MD013": false,
+
+  // MD024: multiple headings with the same content
+  // Allowed since "Extracted ..." headings vary by section content
+  "MD024": {
+    "siblings_only": true
+  },
+
+  // MD033: bare URLs (disabled)
+  // Placeholders like <slug> and <spec> are intentional in template/phase docs
+  "MD033": false,
+
+  // MD040: fenced code blocks must have a language specified
+  "MD040": true,
+
+  // MD041: first line in a file should be a top-level heading
+  "MD041": true,
+
+  // MD060: table pipe style - require spaces around pipes
+  "MD060": {
+    "style": "consistent",
+    "tables": "consistent"
+  }
+}

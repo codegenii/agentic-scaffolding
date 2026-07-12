@@ -12,7 +12,7 @@ Find the most recent commit whose subject starts with `chore(retro)`:
 
 ```bash
 git log --oneline | grep -m1 "chore(retro)" | awk '{print $1}'
-```
+```text
 
 If a hash is found, the window is `<hash>..HEAD`. Otherwise use the last 30 commits (`HEAD~30..HEAD`, or all commits if fewer). Store the base ref.
 
@@ -33,19 +33,19 @@ git log <base>..HEAD --oneline | grep -iE "(drop|clarify|align|never|rejected)"
 **2c. Spec files edited after an approval commit (same slug):**
 ```bash
 git log <base>..HEAD --oneline --diff-filter=M -- "docs/specs/*.md"
-```
+```markdown
 For each changed spec, check whether a commit with `approved` in its subject on the same slug appears *before* the edit. Flag any that do — an approved spec is immutable.
 
 **2d. Invariant-contradiction sweep in docs changed in the window:**
 ```bash
 git diff <base>..HEAD --name-only -- docs/
-```
+```markdown
 Read `.claude/agents/conventions/invariants.md`. For each invariant, derive the words that would signal a violation (e.g. an invariant forbidding network on the default path → grep for the relevant client/API names) and grep the changed docs' hunks for them. Flag any hit that contradicts an invariant. Also read `CLAUDE.md` for any stated hard rules and check the same way.
 
 **2e. Re-duplicated invariants outside the canonical file:**
 ```bash
 grep -rniE "^#+ .*invariant|project-specific invariant" .claude/agents/ | grep -v "conventions/invariants.md"
-```
+```markdown
 Flag any hit that copies a rule from `conventions/invariants.md` back into a role file — that is the single-source consolidation drifting back. `_conventions.md`'s "Always-applicable invariants" heading is the known exception.
 
 ## Step 3 — Propose at most 3 improvements
@@ -58,7 +58,7 @@ Present the proposals with a one-line rationale each. Ask the user to approve be
 
 Once approved, determine today's date (YYYY-MM-DD) and enter a worktree:
 
-```
+```markdown
 EnterWorktree name="retro-<date>"
 ```
 

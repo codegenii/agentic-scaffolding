@@ -56,7 +56,7 @@ Files touched:
 Open questions: <count, or "None.">
 Blockers:
 <what is missing or contradictory in the brief, or "None.">
-```
+```text
 
 - `OK` — the draft is written; the driver's prelint and spec-reviewer judge it from here.
 - `BLOCKED` — a brief input is missing or contradictory (no template, criteria that contradict a named invariant, an unreadable superseded spec); detail under `Blockers`.

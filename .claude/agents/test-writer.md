@@ -53,7 +53,7 @@ Commands:
 <test command>: exit <status>, <n> failing, all failures `not implemented`: <yes | no>
 Blockers:
 <the blocker block (e.g. BUILD FAILURE), or "None.">
-```
+```text
 
 - `OK` — the suite compiles/loads and every test fails with `not implemented`.
 - `FAILING` — the exit check does not hold (e.g. a failure that is not `not implemented`); evidence in `Commands`. The driver decides whether to retry.

@@ -35,7 +35,7 @@ SPEC says:
 Test asserts:
 <verbatim excerpt>
 Required action: orchestrator should resolve before re-invoking implementer.
-```
+```text
 
 Do not attempt to satisfy both — surface the conflict.
 

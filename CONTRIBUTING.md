@@ -5,7 +5,7 @@ This project uses a **spec-first, multi-agent TDD workflow** driven by Claude Co
 ## Commands
 
 | Command | Use |
-|---|---|
+| --- | --- |
 | `/new-feature <slug> [use sonnet] <criteria>` | Full spec → tests → implementation → PR workflow for a new feature. |
 | `/new-chore <description>` | Isolated worktree for non-feature work (refactors, docs, config, dependency bumps). |
 | `/resume-feature <slug> [use sonnet]` | Resume an interrupted feature — the phase is detected from git history. |
@@ -32,7 +32,7 @@ Write the directive immediately after the slug, before the criteria, so it never
 
 A feature runs through eight strictly-ordered phases, each with objective entry and exit gates and an iteration cap. Nothing is skipped or reordered.
 
-```
+```text
 spec → spec review → add deps → interface skeleton
      → failing tests (RED) → implementation (GREEN) → PR review → mark ready
 ```
@@ -40,7 +40,7 @@ spec → spec review → add deps → interface skeleton
 The driving session sequences the phases and spawns worker agents — it never writes code or spec drafts itself. Five agents do the work, under hard file-ownership boundaries:
 
 | Agent | Writes | Never touches |
-|---|---|---|
+| --- | --- | --- |
 | `spec-writer` | the feature spec draft | source, tests, the spec registry |
 | `spec-reviewer` | nothing (verdict only) | — |
 | `implementer` | non-test source | test files, specs |
@@ -76,7 +76,7 @@ Every unit of work runs in its own git worktree on its own branch, so parallel s
 ## Where things live
 
 | Path | What |
-|---|---|
+| --- | --- |
 | `.claude/project.md` | Stack config — every `${...}` variable resolves here. |
 | `.claude/orchestrator.md` + `orchestrator/phases/` | The eight-phase state machine. |
 | `.claude/agents/` | The five worker agents, their conventions, and context cards. |

@@ -47,3 +47,33 @@ this section is the reasoning, the invariant is the rule.
 **Why.** Content pasted into the brief gets read; a file mid-way through a load list may not. One driver read replaces a read per worker, and the stable placement keeps the section cacheable.
 
 **Trade-off.** The list is duplicated into every brief at assembly time; an edit to `invariants.md` mid-feature does not reach briefs already assembled. Accepted knowingly.
+
+## 4. pr-reviewer defaults to sonnet
+
+**Context.** pr-reviewer ran on haiku on the theory that its inputs arrive
+pre-validated (green tests, driver-run checks), making the review a mechanical
+checklist — the same shape of theory that once put the driver on haiku
+(decision 1). But its transcript is the deepest of any worker: the longest
+warm-up read list (`project.md`, `_conventions.md`, `invariants.md`,
+architecture index, subsystem doc), full toolchain output captured line by
+line, the diff against main, and a full-file read of every changed file —
+depth that scales with PR size. Decision 1 established that instruction
+adherence decays with transcript depth, steeply on small models; decision 3's
+inline-invariants mitigation does not cover the reviewers, so pr-reviewer
+still loads `invariants.md` mid-list, the position most likely skimmed.
+
+**Choice.** `pr-reviewer` defaults to **sonnet** (frontmatter `model:` in
+`.claude/agents/pr-reviewer.md`).
+
+**Why.** The instruction-dense work — verification tags, verdict caps,
+blocking classifications, the single-call rule — executes at the end of the
+transcript, at maximum depth, exactly where small-model adherence decays.
+Pre-validated inputs green-light the toolchain but validate none of the five
+finding sections; only license transcription is mechanical. A drifted
+reviewer's characteristic failure is a false APPROVE — pass reported for a
+command never run, a verdict cap forgotten — and this is the last gate before
+merge. Haiku's per-review savings do not cover the cost of one false APPROVE
+acted on.
+
+**Trade-off.** Every review round costs sonnet tokens, and Phase 7 can loop
+review → fix → re-review. Accepted knowingly.

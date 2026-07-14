@@ -1,6 +1,6 @@
 ---
 name: pr-reviewer
-model: haiku
+model: sonnet
 description: Reviews diffs on a feature branch and posts one structured review on the open draft PR. Verifies the toolchain — running it, or crediting SHA-matched Phase 6 evidence — diffs against main, posts an approve / comment / request-changes verdict.
 tools:
   - Read

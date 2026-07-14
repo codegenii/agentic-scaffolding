@@ -89,11 +89,11 @@ Every unit of work runs in its own git worktree on its own branch, so parallel s
 ## Adapting the workflow
 
 - **Commands, globs, license** — all in `.claude/project.md`. Change them there, never in the phase files.
-- **Agent models** — set per agent in each definition's frontmatter `model:` field. The defaults are deliberate, validated over six real features:
+- **Agent models** — set per agent in each definition's frontmatter `model:` field. The defaults are deliberate:
   - `spec-writer` **opus** — drafting quality is the binding constraint; driver-drafted specs drew change requests on 4 of 6 features, and every revision round costs a full opus review.
   - `spec-reviewer` **opus** — one call per feature guarding the highest-leverage gate; cheap insurance.
   - `implementer`, `test-writer` **sonnet**.
-  - `pr-reviewer` **haiku** — its inputs arrive pre-validated (green tests, clean build, driver-run license and surface-drift checks), so the checklist is mechanical.
+  - `pr-reviewer` **sonnet** — the deepest worker transcript (five warm-up docs, full toolchain output, full read of every changed file) puts its verdict rules at the depth where small-model adherence decays; see decision 4 in `docs/decisions.md`.
 
   The driver is not one of these — it runs on your session's model, gated by the commands. See [Driver model](#driver-model).
 - **No GitHub** — the default flow opens a draft PR with `gh`. To drop it, edit `.claude/orchestrator/phases/phase-7.md`, `phase-8.md`, and `.claude/agents/pr-reviewer.md` to review the local diff and stop at the branch. The rest of the workflow is unaffected.

@@ -10,4 +10,4 @@ This table is the index of every spec and its status. `Status` is `active`, or `
 
 | Date | Spec | Status | Supersedes |
 |------|------|--------|------------|
-| <!-- first spec lands here when /new-feature runs Phase 1 --> | | | |
+| 2026-07-19 | [2026-07-19-run-journal.md](2026-07-19-run-journal.md) | active | — |

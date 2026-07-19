@@ -15,14 +15,17 @@ below to `/new-feature`; adjust module naming to the project's layout.
 
 Acceptance criteria:
 
-- One new single-file module `run_journal` owning one SQLite database
-  `runs.db`, opened in WAL mode with a busy_timeout; schema created on first
-  use:
-  - runs(id, agent, task, status running|success|failed, started_at,
+- One new single-file module `run_journal` owning one SQLite database at the
+  path in `RUN_JOURNAL_DB` (default `~/.agent-journal/runs.db` — outside any
+  checkout, so all worktrees and forks on a machine share one journal),
+  opened in WAL mode with a busy_timeout; schema created on first use:
+  - runs(id, project, agent, task, status running|success|failed, started_at,
     finished_at, duration_ms, tokens_in, tokens_out, cost_usd, error,
     metadata JSON)
   - events(id, run_id, ts, type, payload JSON)
-- start_run(agent, task, metadata) -> run_id inserts a running row.
+- start_run(agent, task, metadata) -> run_id inserts a running row; each run
+  records a project (env RUN_JOURNAL_PROJECT, else the working directory's
+  repo name), and stats can filter by it.
 - log_event(run_id, type, payload) appends an event row (callers may skip it).
 - finish_run(run_id, status, tokens_in, tokens_out, cost, error) closes the
   run and computes duration_ms.
@@ -40,7 +43,8 @@ Acceptance criteria:
 Constraints:
 
 - Stdlib only (sqlite3) — External dependencies: None. No ORM.
-- No servers, Docker, queues, or web UI. One database file; gitignore runs.db.
+- No servers, Docker, queues, or web UI. One database file, outside the
+  checkout by default (still gitignore runs.db).
 - This feature adds the module and its tests only — it must not touch any
   existing pipeline file. Rollout to agent entry points is a separate chore.
 - Aim for ~200 source lines (tests excluded); drop niceties before growing.
@@ -57,6 +61,10 @@ Adjustments from the original prompt:
   into failing tests.
 - "No dependencies beyond stdlib" mapped to the spec's `External dependencies:
   None`, which makes Phase 3 a no-op.
+- Database moved from a repo-relative `runs.db` to a machine-level default
+  (`RUN_JOURNAL_DB`) with a `project` column — a repo-relative file would
+  fragment per worktree and die with `prune-worktrees.sh`, and the shared
+  path lets all forks on a machine feed one journal.
 
 ## Follow-ups
 
@@ -67,3 +75,11 @@ Adjustments from the original prompt:
   the feature workflow does not). Includes wiring real `tokens_in` /
   `tokens_out` / `cost_usd` from whatever the pipeline's LLM client exposes;
   columns stay NULL until then.
+- `run-journal-replication` — occasional (backup, or moving work to another
+  machine — not a daily operation): a `snapshot` subcommand writing a
+  consistent single-file copy via `VACUUM INTO` (never file-copy a live WAL
+  db), and a `--db <path>` flag on `stats` to read any snapshot. Restore =
+  copy the snapshot over and point `RUN_JOURNAL_DB` at it. No live sync, no
+  network filesystems (unsafe under WAL). Merging histories that diverged in
+  parallel is out of scope until it actually happens (integer run ids
+  collide).

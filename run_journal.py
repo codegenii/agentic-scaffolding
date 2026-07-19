@@ -1,8 +1,11 @@
 """Run journal: stdlib-only SQLite-backed logging for agent run telemetry.
 
 Configuration is read from the environment at call time: `RUN_JOURNAL_DB`
-(journal database path, default `~/.agent-journal/runs.db`) and
-`RUN_JOURNAL_PROJECT` (overrides the derived project name).
+(journal database path, default `~/.agent-journal/runs.db`),
+`RUN_JOURNAL_PROJECT` (overrides the derived project name), and
+`RUN_JOURNAL_TEMPLATE_VERSION` (overrides the template version recorded on
+each run; default is the `commit` value from the checkout root's
+`.claude/template-version`, written by the template installer).
 
 First-run machine setup: `scripts/init-run-journal.sh <absolute-path>`
 creates the machine-wide database and fails loudly (journal failures are
@@ -40,7 +43,8 @@ CREATE TABLE IF NOT EXISTS runs (
     tokens_out  INTEGER,
     cost_usd    REAL,
     error       TEXT,
-    metadata    TEXT
+    metadata    TEXT,
+    template_version TEXT
 )
 """
 
@@ -124,12 +128,26 @@ def _ensure_wal_and_schema(conn, path):
             if path not in _initialized_paths:
                 conn.execute(_RUNS_TABLE_SQL)
                 conn.execute(_EVENTS_TABLE_SQL)
+                _migrate_runs_columns(conn)
                 conn.commit()
                 _initialized_paths.add(path)
             return
         except sqlite3.OperationalError as exc:
             last_exc = exc
     raise last_exc
+
+
+def _migrate_runs_columns(conn):
+    """Additive migration for databases created before newer columns existed."""
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(runs)")}
+    if "template_version" in columns:
+        return
+    try:
+        conn.execute("ALTER TABLE runs ADD COLUMN template_version TEXT")
+    except sqlite3.OperationalError as exc:
+        # Lost a race with another process adding the same column.
+        if "duplicate column" not in str(exc).lower():
+            raise
 
 
 def _utc_now():
@@ -144,7 +162,7 @@ def _parse_iso_utc(value):
 
 
 # ---------------------------------------------------------------------------
-# Project derivation
+# Project and template-version derivation
 # ---------------------------------------------------------------------------
 
 
@@ -155,18 +173,27 @@ def _resolve_project():
     return _derive_project_from_git_ancestor(os.getcwd())
 
 
-def _derive_project_from_git_ancestor(start_dir):
+def _find_checkout_root(start_dir):
+    """Return the nearest ancestor directory holding a `.git` entry, or None."""
     current = os.path.abspath(start_dir)
     while True:
         git_path = os.path.join(current, ".git")
-        if os.path.isdir(git_path):
-            return os.path.basename(current)
-        if os.path.isfile(git_path):
-            return _project_from_gitdir_file(git_path)
+        if os.path.isdir(git_path) or os.path.isfile(git_path):
+            return current
         parent = os.path.dirname(current)
         if parent == current:
-            return os.path.basename(os.path.abspath(start_dir))
+            return None
         current = parent
+
+
+def _derive_project_from_git_ancestor(start_dir):
+    root = _find_checkout_root(start_dir)
+    if root is None:
+        return os.path.basename(os.path.abspath(start_dir))
+    git_path = os.path.join(root, ".git")
+    if os.path.isfile(git_path):
+        return _project_from_gitdir_file(git_path)
+    return os.path.basename(root)
 
 
 def _project_from_gitdir_file(git_file_path):
@@ -184,6 +211,34 @@ def _project_from_gitdir_file(git_file_path):
     return os.path.basename(main_checkout.rstrip("/"))
 
 
+def _resolve_template_version():
+    env_version = os.environ.get("RUN_JOURNAL_TEMPLATE_VERSION")
+    if env_version:
+        return env_version
+    root = _find_checkout_root(os.getcwd())
+    if root is None:
+        return None
+    return _read_template_version_file(
+        os.path.join(root, ".claude", "template-version"))
+
+
+def _read_template_version_file(path):
+    """Parse the installer-written file: the `commit <sha>` line's value,
+    else the first non-empty line."""
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            lines = [line.strip() for line in fh.read().splitlines()]
+    except OSError:
+        return None
+    for line in lines:
+        if line.startswith("commit "):
+            return line[len("commit "):].strip() or None
+    for line in lines:
+        if line:
+            return line
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Public functions
 # ---------------------------------------------------------------------------
@@ -193,24 +248,30 @@ def start_run(agent, task, metadata=None):
     """Insert a 'running' run row and return its integer id, or None on failure.
 
     Records `agent`, `task`, `started_at` (current UTC ISO-8601), status
-    'running', `metadata` serialized as JSON, and a resolved `project`:
-    `RUN_JOURNAL_PROJECT` if set, else the repo-name derived by walking up from
-    the working directory to the nearest `.git` entry (see Behavior). Returns
-    the new row's id (int). On any journal failure emits one warning and
-    returns None; never raises.
+    'running', `metadata` serialized as JSON, a resolved `project`
+    (`RUN_JOURNAL_PROJECT` if set, else the repo-name derived by walking up
+    from the working directory to the nearest `.git` entry), and a
+    `template_version` (`RUN_JOURNAL_TEMPLATE_VERSION` if set, else the
+    `commit` recorded in the checkout root's `.claude/template-version`, else
+    NULL). Returns the new row's id (int). On any journal failure emits one
+    warning and returns None; never raises.
     """
     try:
         metadata_json = json.dumps(metadata) if metadata is not None else None
         project = _resolve_project()
+        template_version = _resolve_template_version()
         started_at = _utc_now().isoformat()
         conn = _connect()
         try:
             cur = conn.execute(
                 """
-                INSERT INTO runs (project, agent, task, status, started_at, metadata)
-                VALUES (?, ?, ?, 'running', ?, ?)
+                INSERT INTO runs
+                    (project, agent, task, status, started_at, metadata,
+                     template_version)
+                VALUES (?, ?, ?, 'running', ?, ?, ?)
                 """,
-                (project, agent, task, started_at, metadata_json),
+                (project, agent, task, started_at, metadata_json,
+                 template_version),
             )
             conn.commit()
             return cur.lastrowid
@@ -327,22 +388,28 @@ def _nearest_rank_index(count, percent):
     return max(1, min(count, rank))
 
 
-def _fetch_runs(project, db_path=None):
+def _fetch_runs(project, db_path=None, agent=None):
     conn = _connect_readonly(db_path) if db_path else _connect()
     try:
         conn.row_factory = sqlite3.Row
+        clauses, params = [], []
         if project:
-            rows = conn.execute(
-                "SELECT * FROM runs WHERE project = ?", (project,)
-            ).fetchall()
-        else:
-            rows = conn.execute("SELECT * FROM runs").fetchall()
-        return rows
+            clauses.append("project = ?")
+            params.append(project)
+        if agent:
+            clauses.append("agent = ?")
+            params.append(agent)
+        sql = "SELECT * FROM runs"
+        if clauses:
+            sql += " WHERE " + " AND ".join(clauses)
+        return conn.execute(sql, params).fetchall()
     finally:
         conn.close()
 
 
-def _format_per_agent_line(agent, rows):
+def _format_summary_line(label, rows):
+    if len(label) > 20:
+        label = label[:17] + "..."
     run_count = len(rows)
     finished = [row for row in rows if row["status"] in _FINISHED_STATUSES]
     total_tokens = sum(
@@ -361,24 +428,46 @@ def _format_per_agent_line(agent, rows):
         rate_str = p50_str = p95_str = "—"
 
     return (
-        f"{agent:<20}{run_count:>6}{rate_str:>10}{p50_str:>8}{p95_str:>8}"
+        f"{label:<20}{run_count:>6}{rate_str:>10}{p50_str:>8}{p95_str:>8}"
         f"{total_tokens:>10}{total_cost:>10.2f}"
     )
 
 
-def _print_per_agent_table(rows):
-    print("Per-agent stats:")
+def _print_summary_table(title, key_label, ordered_groups):
+    print(title)
     print(
-        f"{'agent':<20}{'runs':>6}{'success%':>10}{'p50':>8}{'p95':>8}"
+        f"{key_label:<20}{'runs':>6}{'success%':>10}{'p50':>8}{'p95':>8}"
         f"{'tokens':>10}{'cost':>10}"
     )
+    for label, rows in ordered_groups:
+        print(_format_summary_line(label, rows))
+    if not ordered_groups:
+        print("(no runs)")
+
+
+def _print_per_agent_table(rows):
     agents = {}
     for row in rows:
         agents.setdefault(row["agent"], []).append(row)
-    for agent in sorted(agents):
-        print(_format_per_agent_line(agent, agents[agent]))
-    if not agents:
-        print("(no runs)")
+    ordered = [(agent, agents[agent]) for agent in sorted(agents)]
+    _print_summary_table("Per-agent stats:", "agent", ordered)
+
+
+def _row_template_version(row):
+    # Snapshots taken before the column existed lack it entirely.
+    return row["template_version"] if "template_version" in row.keys() else None
+
+
+def _print_per_version_table(rows):
+    groups = {}
+    for row in rows:
+        groups.setdefault(_row_template_version(row) or "—", []).append(row)
+    # Chronological by each version's earliest run — the improvement timeline.
+    ordered = sorted(
+        groups.items(),
+        key=lambda item: min(row["started_at"] for row in item[1]),
+    )
+    _print_summary_table("Per-version stats:", "version", ordered)
 
 
 def _print_recent_runs(rows, last_n):
@@ -408,8 +497,11 @@ def _print_failures(rows):
         )
 
 
-def _run_stats(last_n, project, db_path=None):
-    rows = _fetch_runs(project, db_path)
+def _run_stats(last_n, project, db_path=None, agent=None, by_version=False):
+    rows = _fetch_runs(project, db_path, agent)
+    if by_version:
+        _print_per_version_table(rows)
+        return
     _print_per_agent_table(rows)
     print()
     _print_recent_runs(rows, last_n)
@@ -437,6 +529,11 @@ def _build_arg_parser():
     stats_parser = subparsers.add_parser("stats", help="Show run statistics")
     stats_parser.add_argument("--last", type=int, default=_DEFAULT_LAST_N)
     stats_parser.add_argument("--project", default=None)
+    stats_parser.add_argument("--agent", default=None)
+    stats_parser.add_argument(
+        "--by-version", action="store_true",
+        help="Summarize by template version, oldest first, instead of the default sections",
+    )
     stats_parser.add_argument(
         "--db", default=None,
         help="Read this database file (e.g. a snapshot) instead of RUN_JOURNAL_DB",
@@ -455,8 +552,10 @@ def main(argv=None):
     plain-text tables to stdout: a per-agent table (run count, success rate,
     p50/p95 duration_ms, total tokens, total cost), the last N runs
     (`--last N`, default 10; status and duration), and failed runs with their
-    error messages. `--project NAME` filters all three sections; `--db PATH`
-    reads that database file (e.g. a snapshot) read-only instead of
+    error messages. `--project NAME` and `--agent NAME` filter all sections;
+    `--by-version` prints one table of the same metrics grouped by recorded
+    template version (oldest version first) instead; `--db PATH` reads that
+    database file (e.g. a snapshot) read-only instead of
     `RUN_JOURNAL_DB`. The `snapshot DEST` subcommand writes a consistent
     single-file copy of the journal to `DEST` via `VACUUM INTO` (safe while
     other processes write; refuses an existing `DEST`). Returns 0 on success;
@@ -474,7 +573,8 @@ def main(argv=None):
 
     if args.command == "stats":
         try:
-            _run_stats(args.last, args.project, args.db)
+            _run_stats(args.last, args.project, args.db, args.agent,
+                       args.by_version)
             return 0
         except Exception as exc:  # any journal failure is swallowed, never raised
             warnings.warn(f"run_journal: stats failed: {exc}")

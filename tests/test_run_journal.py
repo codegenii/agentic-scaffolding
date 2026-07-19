@@ -53,7 +53,8 @@ CREATE TABLE IF NOT EXISTS runs (
     tokens_out  INTEGER,
     cost_usd    REAL,
     error       TEXT,
-    metadata    TEXT
+    metadata    TEXT,
+    template_version TEXT
 )
 """
 
@@ -66,6 +67,44 @@ CREATE TABLE IF NOT EXISTS events (
     payload TEXT
 )
 """
+
+
+_PRE_TEMPLATE_VERSION_RUNS_TABLE_SQL = """
+CREATE TABLE runs (
+    id          INTEGER PRIMARY KEY,
+    project     TEXT NOT NULL,
+    agent       TEXT NOT NULL,
+    task        TEXT NOT NULL,
+    status      TEXT NOT NULL,
+    started_at  TEXT NOT NULL,
+    finished_at TEXT,
+    duration_ms INTEGER,
+    tokens_in   INTEGER,
+    tokens_out  INTEGER,
+    cost_usd    REAL,
+    error       TEXT,
+    metadata    TEXT
+)
+"""
+
+
+def _seed_old_schema_db(db_path, agent="agent"):
+    """Create a database with the pre-template_version schema and one run."""
+    parent = os.path.dirname(db_path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+    conn = sqlite3.connect(db_path)
+    try:
+        conn.execute(_PRE_TEMPLATE_VERSION_RUNS_TABLE_SQL)
+        conn.execute(_EVENTS_TABLE_SQL)
+        conn.execute(
+            "INSERT INTO runs (project, agent, task, status, started_at)"
+            " VALUES (?, ?, 't', 'success', '2026-01-01T00:00:00+00:00')",
+            ("proj", agent),
+        )
+        conn.commit()
+    finally:
+        conn.close()
 
 
 class _Boom(Exception):
@@ -130,8 +169,8 @@ def _seed_runs(db_path, rows):
                 INSERT INTO runs
                     (project, agent, task, status, started_at, finished_at,
                      duration_ms, tokens_in, tokens_out, cost_usd, error,
-                     metadata)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     metadata, template_version)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     row["project"],
@@ -146,6 +185,7 @@ def _seed_runs(db_path, rows):
                     row.get("cost_usd"),
                     row.get("error"),
                     row.get("metadata"),
+                    row.get("template_version"),
                 ),
             )
             ids.append(cur.lastrowid)
@@ -172,7 +212,7 @@ def _seed_running_run(db_path, started_at=None, **overrides):
 
 def _finished_run(agent, duration_ms, status, *, project="proj", task="task",
                    tokens_in=None, tokens_out=None, cost_usd=None, error=None,
-                   started_at=None):
+                   started_at=None, template_version=None):
     """Build a seed-able finished-run row dict."""
     if started_at is None:
         started_at = datetime.now(timezone.utc).isoformat()
@@ -189,6 +229,7 @@ def _finished_run(agent, duration_ms, status, *, project="proj", task="task",
         "cost_usd": cost_usd,
         "error": error,
         "metadata": None,
+        "template_version": template_version,
     }
 
 
@@ -339,10 +380,12 @@ class _IsolatedJournalTestCase(unittest.TestCase):
         self.db_path = os.path.join(self._tempdir, "nested", "runs.db")
         self._saved_env = {
             key: os.environ.get(key)
-            for key in ("RUN_JOURNAL_DB", "RUN_JOURNAL_PROJECT")
+            for key in ("RUN_JOURNAL_DB", "RUN_JOURNAL_PROJECT",
+                        "RUN_JOURNAL_TEMPLATE_VERSION")
         }
         os.environ["RUN_JOURNAL_DB"] = self.db_path
         os.environ.pop("RUN_JOURNAL_PROJECT", None)
+        os.environ.pop("RUN_JOURNAL_TEMPLATE_VERSION", None)
 
     def tearDown(self):
         for key, value in self._saved_env.items():
@@ -447,6 +490,72 @@ class ProjectDerivationTests(_IsolatedJournalTestCase):
 
         row = _fetch_run(self.db_path, run_id)
         self.assertEqual(row["project"], "path-scrubbed-repo")
+
+
+# ---------------------------------------------------------------------------
+# Template-version derivation
+# ---------------------------------------------------------------------------
+
+
+class TemplateVersionCaptureTests(_IsolatedJournalTestCase):
+    """Covers RUN_JOURNAL_TEMPLATE_VERSION and the .claude/template-version read."""
+
+    def test_start_run_uses_template_version_environment_variable_when_set(self):
+        os.environ["RUN_JOURNAL_TEMPLATE_VERSION"] = "v-explicit"
+
+        run_id = run_journal.start_run("agent", "task")
+
+        row = _fetch_run(self.db_path, run_id)
+        self.assertEqual(row["template_version"], "v-explicit")
+
+    def test_start_run_reads_commit_from_template_version_file_at_checkout_root(self):
+        with tempfile.TemporaryDirectory() as fixture_root:
+            repo_dir = os.path.join(fixture_root, "repo")
+            os.makedirs(os.path.join(repo_dir, ".git"))
+            os.makedirs(os.path.join(repo_dir, ".claude"))
+            version_file = os.path.join(repo_dir, ".claude", "template-version")
+            with open(version_file, "w", encoding="utf-8") as fh:
+                fh.write("commit abc123def456\ninstalled 2026-07-19\n")
+            work_dir = os.path.join(repo_dir, "sub")
+            os.makedirs(work_dir)
+            with _chdir(work_dir):
+                run_id = run_journal.start_run("agent", "task")
+
+        row = _fetch_run(self.db_path, run_id)
+        self.assertEqual(row["template_version"], "abc123def456")
+
+    def test_start_run_records_null_template_version_when_no_file_exists(self):
+        with tempfile.TemporaryDirectory() as fixture_root:
+            repo_dir = os.path.join(fixture_root, "repo")
+            os.makedirs(os.path.join(repo_dir, ".git"))
+            with _chdir(repo_dir):
+                run_id = run_journal.start_run("agent", "task")
+
+        row = _fetch_run(self.db_path, run_id)
+        self.assertIsNone(row["template_version"])
+
+
+# ---------------------------------------------------------------------------
+# Schema migration
+# ---------------------------------------------------------------------------
+
+
+class SchemaMigrationTests(_IsolatedJournalTestCase):
+    def test_start_run_adds_template_version_column_to_a_pre_column_database(self):
+        _seed_old_schema_db(self.db_path, agent="old-agent")
+
+        run_id = run_journal.start_run("agent", "task")
+
+        new_row = _fetch_run(self.db_path, run_id)
+        self.assertIn("template_version", new_row.keys())
+        conn = sqlite3.connect(self.db_path)
+        try:
+            old_version = conn.execute(
+                "SELECT template_version FROM runs WHERE agent = 'old-agent'"
+            ).fetchone()[0]
+        finally:
+            conn.close()
+        self.assertIsNone(old_version)
 
 
 # ---------------------------------------------------------------------------
@@ -1001,6 +1110,125 @@ class CliStatsProjectFilterTests(_IsolatedJournalTestCase):
             self.assertIn(token, output)
         for token in ("agent-B", "task-B-last", "err-B-fail"):
             self.assertNotIn(token, output)
+
+
+# ---------------------------------------------------------------------------
+# CLI: `stats --agent`
+# ---------------------------------------------------------------------------
+
+
+class CliStatsAgentFilterTests(_IsolatedJournalTestCase):
+    def test_stats_agent_filter_restricts_all_sections_to_the_matching_agent(self):
+        _seed_runs(
+            self.db_path,
+            [
+                _finished_run(
+                    "agent-A", 10, "success", task="task-A-last"
+                ),
+                _finished_run(
+                    "agent-A", 20, "failed", task="task-A-fail",
+                    error="err-A-fail",
+                ),
+                _finished_run(
+                    "agent-B", 10, "success", task="task-B-last"
+                ),
+                _finished_run(
+                    "agent-B", 20, "failed", task="task-B-fail",
+                    error="err-B-fail",
+                ),
+            ],
+        )
+
+        exit_code, output = _capture_stdout(["stats", "--agent", "agent-A"])
+
+        self.assertEqual(exit_code, 0)
+        for token in ("agent-A", "task-A-last", "err-A-fail"):
+            self.assertIn(token, output)
+        for token in ("agent-B", "task-B-last", "err-B-fail"):
+            self.assertNotIn(token, output)
+
+
+# ---------------------------------------------------------------------------
+# CLI: `stats --by-version`
+# ---------------------------------------------------------------------------
+
+
+class CliStatsByVersionTests(_IsolatedJournalTestCase):
+    def test_stats_by_version_groups_runs_chronologically_by_template_version(self):
+        _seed_runs(
+            self.db_path,
+            [
+                _finished_run(
+                    "agent", 10, "success",
+                    started_at="2026-01-01T00:00:01+00:00",
+                    template_version="ver-old",
+                ),
+                _finished_run(
+                    "agent", 20, "failed", error="boom",
+                    started_at="2026-01-01T00:00:02+00:00",
+                    template_version="ver-old",
+                ),
+                _finished_run(
+                    "agent", 30, "success",
+                    started_at="2026-01-01T00:00:03+00:00",
+                    template_version="ver-new",
+                ),
+                _finished_run(
+                    "agent", 40, "success",
+                    started_at="2026-01-01T00:00:00+00:00",
+                ),
+            ],
+        )
+
+        exit_code, output = _capture_stdout(["stats", "--by-version"])
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn("ver-old", output)
+        self.assertIn("ver-new", output)
+        self.assertIn("—", output)  # unversioned runs grouped under a dash
+        self.assertLess(output.index("ver-old"), output.index("ver-new"))
+        _assert_standalone_percentage(self, output, 50)  # ver-old: 1 of 2
+
+    def test_stats_by_version_prints_only_the_per_version_table(self):
+        _seed_runs(
+            self.db_path,
+            [_finished_run("agent", 10, "failed", error="boom", template_version="v1")],
+        )
+
+        exit_code, output = _capture_stdout(["stats", "--by-version"])
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn("Per-version stats:", output)
+        self.assertNotIn("Per-agent stats:", output)
+        self.assertNotIn("Failures:", output)
+
+    def test_stats_by_version_composes_with_the_agent_filter(self):
+        _seed_runs(
+            self.db_path,
+            [
+                _finished_run("agent-A", 10, "success", template_version="ver-a"),
+                _finished_run("agent-B", 20, "success", template_version="ver-b"),
+            ],
+        )
+
+        exit_code, output = _capture_stdout(
+            ["stats", "--by-version", "--agent", "agent-A"]
+        )
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn("ver-a", output)
+        self.assertNotIn("ver-b", output)
+
+    def test_stats_by_version_reads_snapshots_that_predate_the_version_column(self):
+        snap_path = os.path.join(self._tempdir, "old-snap.db")
+        _seed_old_schema_db(snap_path)
+
+        exit_code, output = _capture_stdout(
+            ["stats", "--by-version", "--db", snap_path]
+        )
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn("—", output)
 
 
 # ---------------------------------------------------------------------------

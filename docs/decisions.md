@@ -77,3 +77,25 @@ acted on.
 
 **Trade-off.** Every review round costs sonnet tokens, and Phase 7 can loop
 review → fix → re-review. Accepted knowingly.
+
+## 5. The run-journal database is machine-level, outside every checkout
+
+**Context.** The original run-journal prompt put `runs.db` at the repo root.
+This repo runs many short-lived worktrees, and `prune-worktrees.sh` deletes
+them after merge — a repo-relative database would fragment per worktree and
+die with it. The alternatives: one db per checkout, or one per machine.
+
+**Choice.** One database per machine: path from `RUN_JOURNAL_DB` (set
+explicitly by `scripts/init-run-journal.sh`; module fallback
+`~/.agent-journal/runs.db`), with a `project` column (`RUN_JOURNAL_PROJECT`,
+else derived repo name) and a `template_version` column so stats can slice
+one shared journal per project, agent, and template version.
+
+**Why.** Every checkout, worktree, and fork on a machine feeds one journal,
+which is what makes cross-version improvement analysis possible at all; the
+matching rule lives in `.claude/agents/conventions/invariants.md`.
+
+**Trade-off.** Mutable state shared across repos: tests must repoint
+`RUN_JOURNAL_DB` at a temp path, and a misconfigured path fails silently by
+design (journal failures never raise) — mitigated by the loud first-run
+script. Accepted knowingly.

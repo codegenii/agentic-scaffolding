@@ -1004,6 +1004,97 @@ class CliStatsProjectFilterTests(_IsolatedJournalTestCase):
 
 
 # ---------------------------------------------------------------------------
+# CLI: `snapshot`
+# ---------------------------------------------------------------------------
+
+
+class CliSnapshotTests(_IsolatedJournalTestCase):
+    def test_snapshot_writes_a_standalone_single_file_copy_including_wal_content(self):
+        # start_run writes under WAL, so the row may live only in the -wal
+        # sidecar; the snapshot must still contain it in one plain file.
+        run_id = run_journal.start_run("agent-x", "task-a")
+        dest = os.path.join(self._tempdir, "backup", "snap.db")
+
+        exit_code, _output = _capture_stdout(["snapshot", dest])
+
+        self.assertEqual(exit_code, 0)
+        self.assertTrue(os.path.isfile(dest))
+        self.assertFalse(os.path.exists(dest + "-wal"))
+        self.assertNotEqual(_journal_mode(dest), "wal")
+        row = _fetch_run(dest, run_id)
+        self.assertEqual(row["agent"], "agent-x")
+        self.assertEqual(row["task"], "task-a")
+
+    def test_snapshot_refuses_to_overwrite_an_existing_destination(self):
+        dest = os.path.join(self._tempdir, "snap.db")
+        with open(dest, "w", encoding="utf-8") as fh:
+            fh.write("existing")
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            exit_code, _output = _capture_stdout(["snapshot", dest])
+
+        self.assertNotEqual(exit_code, 0)
+        self.assertEqual(len(caught), 1)
+        with open(dest, encoding="utf-8") as fh:
+            self.assertEqual(fh.read(), "existing")
+
+    def test_snapshot_with_missing_dest_argument_prints_usage_and_returns_nonzero(self):
+        exit_code, output = _capture_stdout_and_stderr(["snapshot"])
+
+        self.assertNotEqual(exit_code, 0)
+        self.assertRegex(output, r"(?i)usage")
+
+
+# ---------------------------------------------------------------------------
+# CLI: `stats --db`
+# ---------------------------------------------------------------------------
+
+
+class CliStatsDbFlagTests(_IsolatedJournalTestCase):
+    def test_stats_db_reads_the_given_path_instead_of_run_journal_db(self):
+        _seed_runs(
+            self.db_path,
+            [_finished_run("env-agent", 10, "success", task="env-task")],
+        )
+        snap_path = os.path.join(self._tempdir, "snap.db")
+        _seed_runs(
+            snap_path,
+            [_finished_run("snap-agent", 20, "success", task="snap-task")],
+        )
+
+        exit_code, output = _capture_stdout(["stats", "--db", snap_path])
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn("snap-agent", output)
+        self.assertNotIn("env-agent", output)
+
+    def test_stats_db_does_not_modify_the_snapshot_file(self):
+        snap_path = os.path.join(self._tempdir, "snap.db")
+        _seed_runs(snap_path, [_finished_run("agent", 10, "success")])
+        with open(snap_path, "rb") as fh:
+            before = fh.read()
+
+        exit_code, _output = _capture_stdout(["stats", "--db", snap_path])
+
+        self.assertEqual(exit_code, 0)
+        self.assertFalse(os.path.exists(snap_path + "-wal"))
+        with open(snap_path, "rb") as fh:
+            self.assertEqual(fh.read(), before)
+
+    def test_stats_db_with_missing_file_warns_once_and_does_not_create_it(self):
+        missing = os.path.join(self._tempdir, "no-such.db")
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            exit_code, _output = _capture_stdout(["stats", "--db", missing])
+
+        self.assertNotEqual(exit_code, 0)
+        self.assertEqual(len(caught), 1)
+        self.assertFalse(os.path.exists(missing))
+
+
+# ---------------------------------------------------------------------------
 # CLI: exit codes and edge cases
 # ---------------------------------------------------------------------------
 
@@ -1088,6 +1179,23 @@ class CliModuleEntryPointTests(unittest.TestCase):
             result = self._run_module(["bogus-subcommand"], db_path)
 
         self.assertNotEqual(result.returncode, 0)
+
+    def test_python_dash_m_snapshot_then_stats_db_round_trips_the_journal(self):
+        with tempfile.TemporaryDirectory() as tmp_root:
+            db_path = os.path.join(tmp_root, "runs.db")
+            snap_path = os.path.join(tmp_root, "snap.db")
+            _seed_runs(
+                db_path,
+                [_finished_run("round-trip-agent", 10, "success")],
+            )
+
+            snapshot_result = self._run_module(["snapshot", snap_path], db_path)
+            stats_result = self._run_module(["stats", "--db", snap_path], db_path)
+
+            self.assertEqual(snapshot_result.returncode, 0)
+            self.assertTrue(os.path.isfile(snap_path))
+            self.assertEqual(stats_result.returncode, 0)
+            self.assertIn("round-trip-agent", stats_result.stdout)
 
 
 if __name__ == "__main__":

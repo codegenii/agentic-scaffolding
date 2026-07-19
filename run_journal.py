@@ -3,6 +3,12 @@
 Configuration is read from the environment at call time: `RUN_JOURNAL_DB`
 (journal database path, default `~/.agent-journal/runs.db`) and
 `RUN_JOURNAL_PROJECT` (overrides the derived project name).
+
+Backup: `python -m run_journal snapshot <dest>` writes a consistent
+single-file copy via `VACUUM INTO`; never file-copy a live WAL database.
+Restore: copy a snapshot over the journal path, or point `RUN_JOURNAL_DB` at
+it (`stats --db <path>` reads one in place). Keep the database on a local
+filesystem — WAL is unsafe on network filesystems.
 """
 
 import argparse
@@ -12,6 +18,7 @@ import json
 import os
 import sqlite3
 import sys
+import urllib.parse
 import warnings
 
 _RUNS_TABLE_SQL = """
@@ -77,6 +84,21 @@ def _connect():
     except Exception:
         conn.close()
         raise
+    return conn
+
+
+def _connect_readonly(path):
+    """Open an existing database file read-only — no create, no WAL switch.
+
+    Used for `stats --db`, so reading a snapshot can never mutate it (or
+    conjure an empty database at a mistyped path).
+    """
+    normalized = os.path.abspath(path).replace(os.sep, "/")
+    if not normalized.startswith("/"):
+        normalized = "/" + normalized
+    uri = "file:" + urllib.parse.quote(normalized, safe="/:") + "?mode=ro"
+    conn = sqlite3.connect(uri, uri=True, timeout=5.0)
+    conn.execute("PRAGMA busy_timeout = 5000")
     return conn
 
 
@@ -290,7 +312,7 @@ def record(agent, task, metadata=None):
 
 
 # ---------------------------------------------------------------------------
-# CLI: `stats`
+# CLI: `stats` and `snapshot`
 # ---------------------------------------------------------------------------
 
 
@@ -300,8 +322,8 @@ def _nearest_rank_index(count, percent):
     return max(1, min(count, rank))
 
 
-def _fetch_runs(project):
-    conn = _connect()
+def _fetch_runs(project, db_path=None):
+    conn = _connect_readonly(db_path) if db_path else _connect()
     try:
         conn.row_factory = sqlite3.Row
         if project:
@@ -381,13 +403,27 @@ def _print_failures(rows):
         )
 
 
-def _run_stats(last_n, project):
-    rows = _fetch_runs(project)
+def _run_stats(last_n, project, db_path=None):
+    rows = _fetch_runs(project, db_path)
     _print_per_agent_table(rows)
     print()
     _print_recent_runs(rows, last_n)
     print()
     _print_failures(rows)
+
+
+def _run_snapshot(dest):
+    parent = os.path.dirname(dest)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+    conn = _connect()
+    try:
+        # VACUUM INTO reads through the connection, so the copy includes
+        # un-checkpointed WAL content and refuses an existing destination.
+        conn.execute("VACUUM INTO ?", (dest,))
+    finally:
+        conn.close()
+    print(f"snapshot written: {dest}")
 
 
 def _build_arg_parser():
@@ -396,6 +432,14 @@ def _build_arg_parser():
     stats_parser = subparsers.add_parser("stats", help="Show run statistics")
     stats_parser.add_argument("--last", type=int, default=_DEFAULT_LAST_N)
     stats_parser.add_argument("--project", default=None)
+    stats_parser.add_argument(
+        "--db", default=None,
+        help="Read this database file (e.g. a snapshot) instead of RUN_JOURNAL_DB",
+    )
+    snapshot_parser = subparsers.add_parser(
+        "snapshot", help="Write a consistent single-file copy of the journal"
+    )
+    snapshot_parser.add_argument("dest")
     return parser
 
 
@@ -406,10 +450,14 @@ def main(argv=None):
     plain-text tables to stdout: a per-agent table (run count, success rate,
     p50/p95 duration_ms, total tokens, total cost), the last N runs
     (`--last N`, default 10; status and duration), and failed runs with their
-    error messages. `--project NAME` filters all three sections. Returns 0 on
-    success; on a journal read failure emits one warning and returns a non-zero
-    code without raising. Unrecognized or missing subcommands print usage and
-    return a non-zero code.
+    error messages. `--project NAME` filters all three sections; `--db PATH`
+    reads that database file (e.g. a snapshot) read-only instead of
+    `RUN_JOURNAL_DB`. The `snapshot DEST` subcommand writes a consistent
+    single-file copy of the journal to `DEST` via `VACUUM INTO` (safe while
+    other processes write; refuses an existing `DEST`). Returns 0 on success;
+    on a journal failure emits one warning and returns a non-zero code without
+    raising. Unrecognized or missing subcommands print usage and return a
+    non-zero code.
     """
     if argv is None:
         argv = sys.argv[1:]
@@ -419,16 +467,24 @@ def main(argv=None):
     except SystemExit as exc:
         return exc.code if exc.code else 2
 
-    if args.command != "stats":
-        parser.print_usage(sys.stderr)
-        return 2
+    if args.command == "stats":
+        try:
+            _run_stats(args.last, args.project, args.db)
+            return 0
+        except Exception as exc:  # any journal failure is swallowed, never raised
+            warnings.warn(f"run_journal: stats failed: {exc}")
+            return 1
 
-    try:
-        _run_stats(args.last, args.project)
-        return 0
-    except Exception as exc:  # any journal failure is swallowed, never raised
-        warnings.warn(f"run_journal: stats failed: {exc}")
-        return 1
+    if args.command == "snapshot":
+        try:
+            _run_snapshot(args.dest)
+            return 0
+        except Exception as exc:  # any journal failure is swallowed, never raised
+            warnings.warn(f"run_journal: snapshot failed: {exc}")
+            return 1
+
+    parser.print_usage(sys.stderr)
+    return 2
 
 
 if __name__ == "__main__":

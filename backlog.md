@@ -75,11 +75,6 @@ Adjustments from the original prompt:
   the feature workflow does not). Includes wiring real `tokens_in` /
   `tokens_out` / `cost_usd` from whatever the pipeline's LLM client exposes;
   columns stay NULL until then.
-- `run-journal-replication` — occasional (backup, or moving work to another
-  machine — not a daily operation): a `snapshot` subcommand writing a
-  consistent single-file copy via `VACUUM INTO` (never file-copy a live WAL
-  db), and a `--db <path>` flag on `stats` to read any snapshot. Restore =
-  copy the snapshot over and point `RUN_JOURNAL_DB` at it. No live sync, no
-  network filesystems (unsafe under WAL). Merging histories that diverged in
-  parallel is out of scope until it actually happens (integer run ids
-  collide).
+- Merging run-journal histories that diverged on parallel machines — out of
+  scope until it actually happens (integer run ids collide). `snapshot` /
+  `stats --db` cover backup and moving work to another machine.

@@ -46,7 +46,10 @@ underscore-prefixed and is not part of this contract.
   over finished runs; p50/p95 over finished runs' `duration_ms`; total tokens =
   `sum(tokens_in) + sum(tokens_out)` counting NULL as 0; total cost =
   `sum(cost_usd)` counting NULL as 0. "Finished" means status `success` or
-  `failed`.
+  `failed`. When an agent has zero finished runs (its rows are all `running`),
+  the agent still gets a per-agent row with its run count, and success rate,
+  p50, and p95 are displayed as `—` (em dash); total tokens and total cost still
+  sum whatever values are present.
 
 ### Schema (created on first use with `CREATE TABLE IF NOT EXISTS`)
 
@@ -222,7 +225,10 @@ Concurrency:
 
 16. `main(['stats'])` prints a per-agent table whose columns are run count,
     success rate, p50 `duration_ms`, p95 `duration_ms`, total tokens, and total
-    cost, computed with the aggregate semantics in the Interface contract.
+    cost, computed with the aggregate semantics in the Interface contract. An
+    agent whose runs are all `running` (zero finished runs) still gets a row:
+    its run count is shown, success rate, p50, and p95 are shown as `—` (em
+    dash), and total tokens and total cost still sum any present values.
 17. `main(['stats', '--last', 'N'])` prints the most recent N runs ordered by
     `started_at` descending, each showing status and duration; N defaults to 10
     when `--last` is omitted.
@@ -260,7 +266,7 @@ environment. No gating is required.
 | 13 | unit | Force a journal error while wrapping a raising callable; assert the callable's exception still propagates. |
 | 14 | unit | Point `RUN_JOURNAL_DB` at an unwritable/invalid path and pass a non-serializable payload; assert None returns, one warning, no raise. |
 | 15 | unit | Two threads (or subprocesses) write concurrently; assert both rows commit. |
-| 16-21 | unit | Seed the temp db with rows, capture stdout, and assert table content, ordering, `--last`/`--project` filtering, exit codes, and the empty-journal case. |
+| 16-21 | unit | Seed the temp db with rows, capture stdout, and assert table content, ordering, `--last`/`--project` filtering, exit codes, the empty-journal case, and a per-agent row whose runs are all `running` (rate/p50/p95 shown as `—`). |
 
 Fakes and fixtures the test-writer constructs (no external-service fakes are
 needed):

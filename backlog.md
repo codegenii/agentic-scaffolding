@@ -43,3 +43,8 @@ The `run-journal` feature landed here on 2026-07-19 (spec:
   data: a `prune` subcommand (drop runs and their events before a date,
   reclaim space) and a read surface for `log_event` rows (per-run timeline —
   nothing reads `events` today).
+- `run-journal-retro-metrics` — deferred until the journal has real data
+  (needs `run-journal-workflow-hooks`): record each `/retro` run in the
+  journal (window examined, signals found, fixes applied), and consider
+  threshold rules for step 2f (auto-flag success% / p95 regressions) once
+  there is enough volume to calibrate against.

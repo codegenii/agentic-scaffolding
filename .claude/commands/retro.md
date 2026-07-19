@@ -8,13 +8,19 @@ Bounded retrospective: scan recent git history for corrective signals, check the
 
 ## Step 1 — Determine the log window
 
-Find the most recent commit whose subject starts with `chore(retro)`:
+The window tip is the current `HEAD` — record its hash for Step 5. The base is the newest `retro-base-*` tag:
+
+```bash
+git tag --list "retro-base-*" --sort=-creatordate | head -1
+```
+
+If no tag exists, fall back to the most recent commit whose subject starts with `chore(retro)`:
 
 ```bash
 git log --oneline | grep -m1 "chore(retro)" | awk '{print $1}'
 ```
 
-If a hash is found, the window is `<hash>..HEAD`. Otherwise use the last 30 commits (`HEAD~30..HEAD`, or all commits if fewer). Store the base ref.
+If neither exists, use the last 30 commits (`HEAD~30..HEAD`, or all commits if fewer). Store the base ref.
 
 ## Step 2 — Collect corrective signals
 
@@ -60,7 +66,7 @@ Flag any hit that copies a rule from `conventions/invariants.md` back into a rol
 
 ## Step 3 — Propose at most 3 improvements
 
-From the signals, select at most 3 improvements. Each must be completable as a single tiny commit — a doc fix, an invariant addition, a guard, a memory entry. Never propose a redesign or new feature. If no signals were flagged, report "no signals found — nothing to improve" and stop.
+From the signals, select at most 3 improvements. Each must be completable as a single tiny commit — a doc fix, an invariant addition, a guard, a memory entry. Never propose a redesign or new feature. If no signals were flagged, report "no signals found — nothing to improve", mark the window (Step 5), and stop.
 
 Present the proposals with a one-line rationale each. Ask the user to approve before applying.
 
@@ -78,4 +84,12 @@ Rename its branch: `git branch -m chore/retro-<date>`.
 
 Apply each approved improvement as its own commit with subject `chore(retro): <short description>`. No body.
 
-When all commits are done, report the branch as **ready to merge**. Do not merge, push, or open a PR. Run `./scripts/sync-worktree-permissions.sh` and call `ExitWorktree action="keep"`.
+When all commits are done, report the branch as **ready to merge**. Do not merge, push, or open a PR. Run `./scripts/sync-worktree-permissions.sh`, call `ExitWorktree action="keep"`, then mark the window (Step 5).
+
+## Step 5 — Mark the examined window
+
+Every retro ends here, with or without signals. Tag the window tip recorded in Step 1 so the next retro starts after it (local tag — never push it):
+
+```bash
+git tag -f retro-base-<date> <window-tip>
+```

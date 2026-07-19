@@ -9,3 +9,5 @@ __pycache__/
 
 # run-journal db — machine-level by default; never commit a journal
 runs.db
+runs.db-wal
+runs.db-shm

@@ -13,6 +13,8 @@ import os
 import re
 import shutil
 import sqlite3
+import subprocess
+import sys
 import tempfile
 import threading
 import unittest
@@ -20,6 +22,15 @@ import warnings
 from datetime import datetime, timedelta, timezone
 
 import run_journal
+
+
+# ---------------------------------------------------------------------------
+# The worktree root (parent of this tests/ directory). Used only to launch
+# `python -m run_journal` as a real subprocess with the right cwd; derived
+# from this file's own location so it never hardcodes an absolute path.
+# ---------------------------------------------------------------------------
+
+_WORKTREE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # ---------------------------------------------------------------------------
@@ -727,6 +738,17 @@ class JournalFailurePolicyTests(_IsolatedJournalTestCase):
         self.assertIsNone(result)
         self.assertEqual(len(caught), 1)
 
+    def test_log_event_with_unwritable_database_path_returns_none_and_warns_once(self):
+        run_id = _seed_running_run(self.db_path)
+        os.environ["RUN_JOURNAL_DB"] = _make_unwritable_db_path(self._tempdir)
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            result = run_journal.log_event(run_id, "tool_call")
+
+        self.assertIsNone(result)
+        self.assertEqual(len(caught), 1)
+
     def test_finish_run_with_unwritable_database_path_returns_none_and_warns_once(self):
         run_id = _seed_running_run(self.db_path)
         os.environ["RUN_JOURNAL_DB"] = _make_unwritable_db_path(self._tempdir)
@@ -1022,6 +1044,50 @@ class CliStatsExitCodeAndEdgeCaseTests(_IsolatedJournalTestCase):
 
         self.assertNotEqual(exit_code, 0)
         self.assertRegex(output, r"(?i)usage")
+
+
+# ---------------------------------------------------------------------------
+# CLI: `python -m run_journal` as a real subprocess
+# ---------------------------------------------------------------------------
+
+
+class CliModuleEntryPointTests(unittest.TestCase):
+    """Covers the documented `python -m run_journal` invocation end to end.
+
+    Runs the module as a real subprocess (never `run_journal.main` called
+    in-process) so a broken module entry point shows up as a failing
+    assertion here rather than going uncaught.
+    """
+
+    def _run_module(self, args, db_path):
+        env = dict(os.environ)
+        env["RUN_JOURNAL_DB"] = db_path
+        env.pop("RUN_JOURNAL_PROJECT", None)
+        return subprocess.run(
+            [sys.executable, "-m", "run_journal", *args],
+            cwd=_WORKTREE_ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+
+    def test_python_dash_m_run_journal_stats_runs_main_and_prints_a_stats_section(self):
+        with tempfile.TemporaryDirectory() as tmp_root:
+            db_path = os.path.join(tmp_root, "runs.db")
+
+            result = self._run_module(["stats"], db_path)
+
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Per-agent stats:", result.stdout)
+
+    def test_python_dash_m_run_journal_with_unrecognized_subcommand_returns_nonzero(self):
+        with tempfile.TemporaryDirectory() as tmp_root:
+            db_path = os.path.join(tmp_root, "runs.db")
+
+            result = self._run_module(["bogus-subcommand"], db_path)
+
+        self.assertNotEqual(result.returncode, 0)
 
 
 if __name__ == "__main__":

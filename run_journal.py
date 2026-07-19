@@ -429,3 +429,7 @@ def main(argv=None):
     except Exception as exc:  # any journal failure is swallowed, never raised
         warnings.warn(f"run_journal: stats failed: {exc}")
         return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -29,8 +29,10 @@ git log <base>..HEAD --oneline | grep -i "^[0-9a-f]* revert"
 **2b. Corrective-word commits (drop / clarify / align / never / rejected):**
 
 ```bash
-git log <base>..HEAD --oneline | grep -iE "(drop|clarify|align|never|rejected)"
+git log <base>..HEAD --oneline | grep -iE "(drop|clarify|align|never|rejected)" | grep -v "chore(backlog)"
 ```
+
+`chore(backlog):` subjects are excluded — routine backlog entry drops are not corrective signals.
 
 **2c. Spec files edited after an approval commit (same slug):**
 

@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Bounded retrospective: scan recent git history for corrective signals, check them against the project invariants, propose at most 3 small fixes, apply each as a tiny commit on a `chore/retro-<date>` branch.
+Bounded retrospective: scan recent git history and run-journal metrics for corrective signals, check them against the project invariants, propose at most 3 small fixes, apply each as a tiny commit on a `chore/retro-<date>` branch.
 
 ## Step 1 — Determine the log window
 
@@ -64,9 +64,18 @@ grep -rniE "^#+ .*invariant|project-specific invariant" .claude/agents/ | grep -
 
 Flag any hit that copies a rule from `conventions/invariants.md` back into a role file — that is the single-source consolidation drifting back. `_conventions.md`'s "Always-applicable invariants" heading is the known exception.
 
+**2f. Journal metrics (per-agent / per-version):**
+
+```bash
+python -m run_journal stats --project "$(basename "$(git rev-parse --show-toplevel)")"
+python -m run_journal stats --by-version --project "$(basename "$(git rev-parse --show-toplevel)")"
+```
+
+If the module is missing, the command errors, or the project has no finished runs, note "no journal data — skipped" and move on. Otherwise flag: an agent whose success rate drops or p95 duration jumps between adjacent template versions; repeated failures clustered on one agent. Either points at a role file or brief worth a small fix.
+
 ## Step 3 — Propose at most 3 improvements
 
-From the signals, select at most 3 improvements. Each must be completable as a single tiny commit — a doc fix, an invariant addition, a guard, a memory entry. Never propose a redesign or new feature. If no signals were flagged, report "no signals found — nothing to improve", mark the window (Step 5), and stop.
+From the signals, select at most 3 improvements. Each must be completable as a single tiny commit — a doc fix, a role-file tweak, an invariant addition, a guard, a memory entry. Never propose a redesign or new feature. If no signals were flagged, report "no signals found — nothing to improve", mark the window (Step 5), and stop.
 
 Present the proposals with a one-line rationale each. Ask the user to approve before applying.
 

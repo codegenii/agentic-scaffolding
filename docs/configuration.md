@@ -18,4 +18,5 @@ Every key the project reads. Keep this table in sync when you add, rename, or re
 
 | Key | Secret | Set via |
 |---|---|---|
-| <!-- first key lands here --> | | |
+| `RUN_JOURNAL_DB` | no | Environment variable. Path of the run-journal SQLite database. Default: `~/.agent-journal/runs.db` — machine-level, outside every checkout. Tests point it at a temp path. |
+| `RUN_JOURNAL_PROJECT` | no | Environment variable. Overrides the project name recorded on each run; default is derived from the nearest `.git` ancestor (worktrees resolve to the main checkout's name). |

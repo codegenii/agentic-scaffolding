@@ -56,4 +56,5 @@ stub	README.md
 stub	docs/architecture.md
 stub	docs/configuration.md
 stub	docs/decisions.md
+template-dev	backlog.md
 template-dev	bootstrap-guide.md

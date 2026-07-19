@@ -3,3 +3,9 @@
 
 # Worktrees created by the feature/chore/resume commands.
 .claude/worktrees/
+
+# Python
+__pycache__/
+
+# run-journal db — machine-level by default; never commit a journal
+runs.db

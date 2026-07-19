@@ -9,17 +9,6 @@ Rules for this list — reviewers flag any edit that breaks them:
 - No rule that is derivable from code, the toolchain, or a doc agents already load; no duplicates — point at the single source.
 - Prefer mechanical enforcement: anything a hook, lint, or CI check can enforce (pattern: `scripts/hooks/worktree-path-guard.sh`) is implemented there, leaving at most one line naming the check.
 
-<!--
-`/init-project` seeds the list below from your answers; delete this comment
-then. Examples of the right shape (from a real project):
-
-- The coverage analyzer and the planner contain no LLM calls — deterministic.
-- Every generated artifact cites the spec clause it satisfies.
-- The four pluggable interfaces are the only extension points. Do not widen, do not bypass.
-- Default-mode code paths must work offline.
-- Runtime boundary — files in, files out. The tool never spawns processes, never
-  runs git, never manages external services, never calls the system under test.
--->
-
-- <your first invariant>
-- <your second invariant>
+- Runtime code and its tests are Python stdlib only — no third-party imports, no dependency manifest.
+- Machine-level state lives outside every checkout: the run-journal db path comes from `RUN_JOURNAL_DB` (default `~/.agent-journal/runs.db`), never repo-relative; tests must point `RUN_JOURNAL_DB` at a temp path.
+- Workflow files under `.claude/` name toolchain facts only as `${VAR}` resolved from `.claude/project.md` — never hardcoded.

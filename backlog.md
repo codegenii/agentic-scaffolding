@@ -78,3 +78,28 @@ Adjustments from the original prompt:
 - Merging run-journal histories that diverged on parallel machines — out of
   scope until it actually happens (integer run ids collide). `snapshot` /
   `stats --db` cover backup and moving work to another machine.
+- `run-journal-workflow-hooks` — the template's own workflow never writes to
+  the journal, so per-agent / per-version metrics stay empty in this repo.
+  Record each worker-agent run automatically (hook on subagent completion, or
+  a driver step in the phases): agent, task/phase, outcome, duration; tokens
+  and cost when the harness exposes them. Observe-only — no phase logic
+  changes. Distinct from `run-journal-integration` above, which covers a
+  downstream pipeline's own agents.
+- `run-journal-distribution` — installs never carry the journal:
+  `run_journal.py`, `tests/test_run_journal.py`, and
+  `scripts/init-run-journal.sh` are absent from
+  `scripts/template-manifest.txt`, while the "Ready — run-journal" block
+  above still tells operators to re-implement the feature downstream via
+  `/new-feature`. Pick one path — ship the files via the manifest and delete
+  the Ready block, or keep the re-implement flow and mark the template's copy
+  as reference — then align backlog and docs.
+- `run-journal-version-fallback` — repos without `.claude/template-version`
+  (this template repo itself included) record NULL and lump under `—` in
+  `stats --by-version`. Either resolve the checkout's own HEAD commit by
+  reading `.git/HEAD` / refs directly (no shelling out — an existing module
+  constraint), or reject the idea and document exporting
+  `RUN_JOURNAL_TEMPLATE_VERSION` per machine instead.
+- `run-journal-upkeep` — deferred until the journal actually accumulates
+  data: a `prune` subcommand (drop runs and their events before a date,
+  reclaim space) and a read surface for `log_event` rows (per-run timeline —
+  nothing reads `events` today).

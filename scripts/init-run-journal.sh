@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
-# init-run-journal.sh — one-time machine bootstrap for the run-journal database.
+# init-run-journal.sh — one-time machine setup for the run-journal database.
 #
-# The journal bootstraps itself on first use (parent directory, database file,
-# schema, WAL mode), but journal failures are swallowed by design — a broken
-# path would record nothing, silently. This script runs the same bootstrap
-# eagerly and fails loudly, and prints how to persist a custom location.
-# Idempotent — safe to re-run.
+# The journal is machine-wide state shared by every checkout and worktree.
+# Pass the full absolute path where it must live; the script creates the
+# database (directory, schema, WAL mode) and fails loudly — journal failures
+# are otherwise swallowed by design. Idempotent — safe to re-run.
 #
 # Usage:
-#   ./scripts/init-run-journal.sh                     # default ~/.agent-journal/runs.db
-#   ./scripts/init-run-journal.sh /custom/dir/runs.db # custom location
+#   ./scripts/init-run-journal.sh /absolute/path/runs.db
 
 set -euo pipefail
 
@@ -20,12 +18,17 @@ cd "$(dirname "$0")/.."  # repo root — run_journal.py lives here
 
 command -v python >/dev/null 2>&1 || die "python not found on PATH"
 
-DEFAULT_DB=$(python -c "import os; print(os.path.join(os.path.expanduser('~'), '.agent-journal', 'runs.db').replace(os.sep, '/'))")
-DB_PATH="${1:-$DEFAULT_DB}"
+[[ $# -eq 1 ]] || die "usage: ./scripts/init-run-journal.sh /absolute/path/runs.db"
+DB_PATH="$1"
 
 # WAL is unsafe on network filesystems — refuse UNC paths outright.
 case "$DB_PATH" in
   //*|\\\\*) die "network path: WAL-mode SQLite is unsafe on network filesystems — pick a local path" ;;
+esac
+
+case "$DB_PATH" in
+  /*|[A-Za-z]:/*|[A-Za-z]:\\*) ;;
+  *) die "not an absolute path: $DB_PATH" ;;
 esac
 
 # Git Bash / MSYS: hand python a Windows-native path, not a /c/... one.
@@ -35,9 +38,9 @@ if command -v cygpath >/dev/null 2>&1; then
 fi
 DB_PATH=$(python -c "import os, sys; print(os.path.abspath(sys.argv[1]).replace(os.sep, '/'))" "$DB_PATH")
 
-# The journal is machine-level state shared by every checkout and worktree — a
-# path inside a repo fragments per worktree and dies with worktree cleanup
-# (see .claude/agents/conventions/invariants.md).
+# Machine-wide means outside every repo — a path inside a checkout fragments
+# per worktree and dies with worktree cleanup (see
+# .claude/agents/conventions/invariants.md).
 REPO_ROOT=$(python -c "import os; print(os.path.abspath('.').replace(os.sep, '/'))")
 case "$DB_PATH" in
   "$REPO_ROOT"/*) die "$DB_PATH is inside this checkout — the journal must live outside every repo" ;;
@@ -62,10 +65,7 @@ if mode != "wal" or not {"runs", "events"} <= tables:
 PY
 
 log "run journal ready: $DB_PATH (journal_mode=wal, tables: runs, events)"
-
-if [[ "$DB_PATH" != "$DEFAULT_DB" ]]; then
-  log ""
-  log "Non-default location — persist RUN_JOURNAL_DB machine-wide:"
-  log "  PowerShell:  setx RUN_JOURNAL_DB \"$DB_PATH\""
-  log "  bash/zsh:    echo 'export RUN_JOURNAL_DB=\"$DB_PATH\"' >> ~/.bashrc  # or your shell profile"
-fi
+log ""
+log "Persist RUN_JOURNAL_DB machine-wide so every checkout uses it:"
+log "  PowerShell:  setx RUN_JOURNAL_DB \"$DB_PATH\""
+log "  bash/zsh:    echo 'export RUN_JOURNAL_DB=\"$DB_PATH\"' >> ~/.bashrc  # or your shell profile"

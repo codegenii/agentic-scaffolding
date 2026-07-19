@@ -4,10 +4,10 @@ Configuration is read from the environment at call time: `RUN_JOURNAL_DB`
 (journal database path, default `~/.agent-journal/runs.db`) and
 `RUN_JOURNAL_PROJECT` (overrides the derived project name).
 
-No setup step is required: the first public call bootstraps everything —
-parent directory, database file, schema, WAL mode. `scripts/init-run-journal.sh`
-runs the same bootstrap eagerly and fails loudly, which matters because
-journal failures are otherwise swallowed as warnings.
+First-run machine setup: `scripts/init-run-journal.sh <absolute-path>`
+creates the machine-wide database and fails loudly (journal failures are
+otherwise swallowed). Any public call also bootstraps a missing database in
+place.
 
 Backup: `python -m run_journal snapshot <dest>` writes a consistent
 single-file copy via `VACUUM INTO`; never file-copy a live WAL database.

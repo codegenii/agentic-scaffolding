@@ -21,13 +21,6 @@ The `run-journal` feature landed here on 2026-07-19 (spec:
 - Merging run-journal histories that diverged on parallel machines — out of
   scope until it actually happens (integer run ids collide). `snapshot` /
   `stats --db` cover backup and moving work to another machine.
-- `run-journal-workflow-hooks` — the template's own workflow never writes to
-  the journal, so per-agent / per-version metrics stay empty in this repo.
-  Record each worker-agent run automatically (hook on subagent completion, or
-  a driver step in the phases): agent, task/phase, outcome, duration; tokens
-  and cost when the harness exposes them. Observe-only — no phase logic
-  changes. Distinct from `run-journal-integration` above, which covers a
-  downstream pipeline's own agents.
 - `run-journal-distribution` — the journal lives in this template repo, but
   installs never carry it: `run_journal.py`, `tests/test_run_journal.py`, and
   `scripts/init-run-journal.sh` are absent from
@@ -45,7 +38,7 @@ The `run-journal` feature landed here on 2026-07-19 (spec:
   reclaim space) and a read surface for `log_event` rows (per-run timeline —
   nothing reads `events` today).
 - `run-journal-retro-metrics` — deferred until the journal has real data
-  (needs `run-journal-workflow-hooks`): record each `/retro` run in the
-  journal (window examined, signals found, fixes applied), and consider
-  threshold rules for step 2f (auto-flag success% / p95 regressions) once
-  there is enough volume to calibrate against.
+  (the subagent hooks record runs since 2026-07-20; wait for volume): record
+  each `/retro` run in the journal (window examined, signals found, fixes
+  applied), and consider threshold rules for step 2f (auto-flag success% /
+  p95 regressions) once there is enough volume to calibrate against.

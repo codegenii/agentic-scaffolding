@@ -538,6 +538,35 @@ class StartRunTests(_IsolatedJournalTestCase):
         row = _fetch_run(self.db_path, run_id)
         self.assertIsNone(row["metadata"])
 
+    def test_start_run_records_explicit_started_at_and_finish_computes_duration_from_it(self):
+        started = datetime.now(timezone.utc) - timedelta(seconds=90)
+
+        run_id = run_journal.start_run("agent-x", "task-a",
+                                       started_at=started.isoformat())
+        run_journal.finish_run(run_id, "success")
+
+        row = _fetch_run(self.db_path, run_id)
+        self.assertEqual(row["started_at"], started.isoformat())
+        self.assertGreaterEqual(row["duration_ms"], 90_000)
+        self.assertLess(row["duration_ms"], 90_000 + 60_000)
+
+    def test_start_run_treats_naive_started_at_as_utc(self):
+        run_id = run_journal.start_run("agent-x", "task-a",
+                                       started_at="2026-07-20T10:00:00")
+
+        row = _fetch_run(self.db_path, run_id)
+        self.assertEqual(row["started_at"], "2026-07-20T10:00:00+00:00")
+
+    def test_start_run_with_unparsable_started_at_warns_and_returns_none(self):
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            run_id = run_journal.start_run("agent-x", "task-a",
+                                           started_at="not-a-timestamp")
+
+        self.assertIsNone(run_id)
+        self.assertTrue(any("start_run failed" in str(w.message)
+                            for w in caught))
+
 
 # ---------------------------------------------------------------------------
 # log_event

@@ -232,7 +232,7 @@ def _read_template_version_file(path):
 # ---------------------------------------------------------------------------
 
 
-def start_run(agent, task, metadata=None):
+def start_run(agent, task, metadata=None, started_at=None):
     """Insert a 'running' run row and return its integer id, or None on failure.
 
     Records `agent`, `task`, `started_at` (current UTC ISO-8601), status
@@ -241,14 +241,19 @@ def start_run(agent, task, metadata=None):
     from the working directory to the nearest `.git` entry), and a
     `template_version` (`RUN_JOURNAL_TEMPLATE_VERSION` if set, else the
     `commit` recorded in the checkout root's `.claude/template-version`, else
-    NULL). Returns the new row's id (int). On any journal failure emits one
-    warning and returns None; never raises.
+    NULL). `started_at`, an ISO-8601 string (naive taken as UTC), replaces
+    the current time — for callers journaling a run after the fact; an
+    unparsable value fails the whole call. Returns the new row's id (int). On
+    any journal failure emits one warning and returns None; never raises.
     """
     try:
         metadata_json = json.dumps(metadata) if metadata is not None else None
         project = _resolve_project()
         template_version = _resolve_template_version()
-        started_at = _utc_now().isoformat()
+        if started_at is None:
+            started_at = _utc_now().isoformat()
+        else:
+            started_at = _parse_iso_utc(started_at).isoformat()
         conn = _connect()
         try:
             cur = conn.execute(

@@ -15,8 +15,9 @@ The `run-journal` feature landed here on 2026-07-19 (spec:
   point with the decorator, observe-only, no pipeline restructuring. Show the
   diff for one agent and get approval before applying to the rest (a chore
   keeps the human in the loop; the feature workflow does not). Includes
-  wiring real `tokens_in` / `tokens_out` / `cost_usd` from whatever the
-  pipeline's LLM client exposes; columns stay NULL until then.
+  wiring real `tokens_in` / `tokens_out` / `cost_usd` / `cache_read_tokens` /
+  `cache_creation_tokens` from whatever the pipeline's LLM client exposes;
+  columns stay NULL until then.
 - Merging run-journal histories that diverged on parallel machines — out of
   scope until it actually happens (integer run ids collide). `snapshot` /
   `stats --db` cover backup and moving work to another machine.

@@ -44,7 +44,9 @@ CREATE TABLE IF NOT EXISTS runs (
     cost_usd    REAL,
     error       TEXT,
     metadata    TEXT,
-    template_version TEXT
+    template_version TEXT,
+    cache_read_tokens INTEGER,
+    cache_creation_tokens INTEGER
 )
 """
 
@@ -137,17 +139,27 @@ def _ensure_wal_and_schema(conn, path):
     raise last_exc
 
 
+# Columns added after the initial schema, in the order they were introduced.
+# Fresh databases get them from _RUNS_TABLE_SQL; existing ones via ALTER TABLE.
+_ADDED_RUNS_COLUMNS = (
+    ("template_version", "TEXT"),
+    ("cache_read_tokens", "INTEGER"),
+    ("cache_creation_tokens", "INTEGER"),
+)
+
+
 def _migrate_runs_columns(conn):
     """Additive migration for databases created before newer columns existed."""
     columns = {row[1] for row in conn.execute("PRAGMA table_info(runs)")}
-    if "template_version" in columns:
-        return
-    try:
-        conn.execute("ALTER TABLE runs ADD COLUMN template_version TEXT")
-    except sqlite3.OperationalError as exc:
-        # Lost a race with another process adding the same column.
-        if "duplicate column" not in str(exc).lower():
-            raise
+    for name, sql_type in _ADDED_RUNS_COLUMNS:
+        if name in columns:
+            continue
+        try:
+            conn.execute(f"ALTER TABLE runs ADD COLUMN {name} {sql_type}")
+        except sqlite3.OperationalError as exc:
+            # Lost a race with another process adding the same column.
+            if "duplicate column" not in str(exc).lower():
+                raise
 
 
 def _utc_now():
@@ -310,16 +322,17 @@ def log_event(run_id, event_type, payload=None):
 
 
 def finish_run(run_id, status, tokens_in=None, tokens_out=None, cost=None,
-               error=None):
+               error=None, cache_read_tokens=None, cache_creation_tokens=None):
     """Close a run: set status, finished_at, and computed duration_ms.
 
     `status` is 'success' or 'failed'. `finished_at` is the current UTC
     ISO-8601 string; `duration_ms` is the non-negative integer milliseconds
     from the row's stored `started_at` to now. `tokens_in`, `tokens_out`,
-    `cost` (stored in `cost_usd`), and `error` are written when provided and
-    left as SQL NULL when None. Returns None; on any journal failure
-    (including an unknown or None `run_id`) emits one warning and returns None
-    without raising.
+    `cost` (stored in `cost_usd`), `error`, `cache_read_tokens`, and
+    `cache_creation_tokens` (the API usage fields `cache_read_input_tokens` /
+    `cache_creation_input_tokens`) are written when provided and left as SQL
+    NULL when None. Returns None; on any journal failure (including an unknown
+    or None `run_id`) emits one warning and returns None without raising.
     """
     try:
         if run_id is None:
@@ -338,12 +351,14 @@ def finish_run(run_id, status, tokens_in=None, tokens_out=None, cost=None,
                 """
                 UPDATE runs
                 SET status = ?, finished_at = ?, duration_ms = ?,
-                    tokens_in = ?, tokens_out = ?, cost_usd = ?, error = ?
+                    tokens_in = ?, tokens_out = ?, cost_usd = ?, error = ?,
+                    cache_read_tokens = ?, cache_creation_tokens = ?
                 WHERE id = ?
                 """,
                 (
                     status, now.isoformat(), duration_ms,
-                    tokens_in, tokens_out, cost, error, run_id,
+                    tokens_in, tokens_out, cost, error,
+                    cache_read_tokens, cache_creation_tokens, run_id,
                 ),
             )
             conn.commit()

@@ -54,7 +54,9 @@ CREATE TABLE IF NOT EXISTS runs (
     cost_usd    REAL,
     error       TEXT,
     metadata    TEXT,
-    template_version TEXT
+    template_version TEXT,
+    cache_read_tokens INTEGER,
+    cache_creation_tokens INTEGER
 )
 """
 
@@ -541,13 +543,15 @@ class TemplateVersionCaptureTests(_IsolatedJournalTestCase):
 
 
 class SchemaMigrationTests(_IsolatedJournalTestCase):
-    def test_start_run_adds_template_version_column_to_a_pre_column_database(self):
+    def test_start_run_adds_missing_columns_to_a_pre_column_database(self):
         _seed_old_schema_db(self.db_path, agent="old-agent")
 
         run_id = run_journal.start_run("agent", "task")
 
         new_row = _fetch_run(self.db_path, run_id)
-        self.assertIn("template_version", new_row.keys())
+        for column in ("template_version", "cache_read_tokens",
+                       "cache_creation_tokens"):
+            self.assertIn(column, new_row.keys())
         conn = sqlite3.connect(self.db_path)
         try:
             old_version = conn.execute(
@@ -556,6 +560,17 @@ class SchemaMigrationTests(_IsolatedJournalTestCase):
         finally:
             conn.close()
         self.assertIsNone(old_version)
+
+    def test_finish_run_writes_cache_columns_after_migrating_an_old_database(self):
+        _seed_old_schema_db(self.db_path)
+
+        run_id = run_journal.start_run("agent", "task")
+        run_journal.finish_run(run_id, "success", cache_read_tokens=1000,
+                               cache_creation_tokens=50)
+
+        row = _fetch_run(self.db_path, run_id)
+        self.assertEqual(row["cache_read_tokens"], 1000)
+        self.assertEqual(row["cache_creation_tokens"], 50)
 
 
 # ---------------------------------------------------------------------------
@@ -658,7 +673,8 @@ class FinishRunTests(_IsolatedJournalTestCase):
         run_id = _seed_running_run(self.db_path)
 
         result = run_journal.finish_run(
-            run_id, "success", tokens_in=12, tokens_out=34, cost=0.5, error=None
+            run_id, "success", tokens_in=12, tokens_out=34, cost=0.5, error=None,
+            cache_read_tokens=5600, cache_creation_tokens=78,
         )
 
         self.assertIsNone(result)
@@ -666,6 +682,8 @@ class FinishRunTests(_IsolatedJournalTestCase):
         self.assertEqual(row["tokens_in"], 12)
         self.assertEqual(row["tokens_out"], 34)
         self.assertEqual(row["cost_usd"], 0.5)
+        self.assertEqual(row["cache_read_tokens"], 5600)
+        self.assertEqual(row["cache_creation_tokens"], 78)
 
     def test_finish_run_leaves_omitted_optional_fields_as_null(self):
         run_id = _seed_running_run(self.db_path)
@@ -678,6 +696,8 @@ class FinishRunTests(_IsolatedJournalTestCase):
         self.assertIsNone(row["tokens_out"])
         self.assertIsNone(row["cost_usd"])
         self.assertIsNone(row["error"])
+        self.assertIsNone(row["cache_read_tokens"])
+        self.assertIsNone(row["cache_creation_tokens"])
 
     def test_finish_run_records_the_given_error_message_on_failure(self):
         run_id = _seed_running_run(self.db_path)

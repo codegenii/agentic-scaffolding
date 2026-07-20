@@ -430,6 +430,12 @@ def _format_summary_line(label, rows):
     total_tokens = sum(
         (row["tokens_in"] or 0) + (row["tokens_out"] or 0) for row in rows
     )
+    total_cache_read = sum(
+        _row_column(row, "cache_read_tokens") or 0 for row in rows
+    )
+    total_cache_creation = sum(
+        _row_column(row, "cache_creation_tokens") or 0 for row in rows
+    )
     total_cost = sum((row["cost_usd"] or 0) for row in rows)
 
     if finished:
@@ -444,7 +450,8 @@ def _format_summary_line(label, rows):
 
     return (
         f"{label:<20}{run_count:>6}{rate_str:>10}{p50_str:>8}{p95_str:>8}"
-        f"{total_tokens:>10}{total_cost:>10.2f}"
+        f"{total_tokens:>10}{total_cache_read:>11}{total_cache_creation:>13}"
+        f"{total_cost:>10.2f}"
     )
 
 
@@ -452,7 +459,7 @@ def _print_summary_table(title, key_label, ordered_groups):
     print(title)
     print(
         f"{key_label:<20}{'runs':>6}{'success%':>10}{'p50':>8}{'p95':>8}"
-        f"{'tokens':>10}{'cost':>10}"
+        f"{'tokens':>10}{'cache-read':>11}{'cache-create':>13}{'cost':>10}"
     )
     for label, rows in ordered_groups:
         print(_format_summary_line(label, rows))
@@ -468,15 +475,16 @@ def _print_per_agent_table(rows):
     _print_summary_table("Per-agent stats:", "agent", ordered)
 
 
-def _row_template_version(row):
-    # Snapshots taken before the column existed lack it entirely.
-    return row["template_version"] if "template_version" in row.keys() else None
+def _row_column(row, name):
+    # Snapshots taken before a column existed lack it entirely.
+    return row[name] if name in row.keys() else None
 
 
 def _print_per_version_table(rows):
     groups = {}
     for row in rows:
-        groups.setdefault(_row_template_version(row) or "—", []).append(row)
+        version = _row_column(row, "template_version") or "—"
+        groups.setdefault(version, []).append(row)
     # Chronological by each version's earliest run — the improvement timeline.
     ordered = sorted(
         groups.items(),
@@ -565,7 +573,8 @@ def main(argv=None):
 
     Parses `argv` (default `sys.argv[1:]`). The `stats` subcommand prints
     plain-text tables to stdout: a per-agent table (run count, success rate,
-    p50/p95 duration_ms, total tokens, total cost), the last N runs
+    p50/p95 duration_ms, total tokens, total cache reads/creations, total
+    cost), the last N runs
     (`--last N`, default 10; status and duration), and failed runs with their
     error messages. `--project NAME` and `--agent NAME` filter all sections;
     `--by-version` prints one table of the same metrics grouped by recorded

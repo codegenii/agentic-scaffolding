@@ -171,8 +171,9 @@ def _seed_runs(db_path, rows):
                 INSERT INTO runs
                     (project, agent, task, status, started_at, finished_at,
                      duration_ms, tokens_in, tokens_out, cost_usd, error,
-                     metadata, template_version)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     metadata, template_version, cache_read_tokens,
+                     cache_creation_tokens)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     row["project"],
@@ -188,6 +189,8 @@ def _seed_runs(db_path, rows):
                     row.get("error"),
                     row.get("metadata"),
                     row.get("template_version"),
+                    row.get("cache_read_tokens"),
+                    row.get("cache_creation_tokens"),
                 ),
             )
             ids.append(cur.lastrowid)
@@ -214,7 +217,8 @@ def _seed_running_run(db_path, started_at=None, **overrides):
 
 def _finished_run(agent, duration_ms, status, *, project="proj", task="task",
                    tokens_in=None, tokens_out=None, cost_usd=None, error=None,
-                   started_at=None, template_version=None):
+                   started_at=None, template_version=None,
+                   cache_read_tokens=None, cache_creation_tokens=None):
     """Build a seed-able finished-run row dict."""
     if started_at is None:
         started_at = datetime.now(timezone.utc).isoformat()
@@ -232,6 +236,8 @@ def _finished_run(agent, duration_ms, status, *, project="proj", task="task",
         "error": error,
         "metadata": None,
         "template_version": template_version,
+        "cache_read_tokens": cache_read_tokens,
+        "cache_creation_tokens": cache_creation_tokens,
     }
 
 
@@ -988,7 +994,8 @@ class CliStatsPerAgentTableTests(_IsolatedJournalTestCase):
             self.db_path,
             [
                 _finished_run(
-                    "alpha", 100, "success", tokens_in=10, tokens_out=5, cost_usd=0.25
+                    "alpha", 100, "success", tokens_in=10, tokens_out=5,
+                    cost_usd=0.25, cache_read_tokens=5000, cache_creation_tokens=80,
                 ),
                 _finished_run(
                     "alpha", 200, "success", tokens_in=20, tokens_out=None, cost_usd=None
@@ -998,7 +1005,8 @@ class CliStatsPerAgentTableTests(_IsolatedJournalTestCase):
                     cost_usd=0.5, error="boom1",
                 ),
                 _finished_run(
-                    "alpha", 400, "success", tokens_in=5, tokens_out=5, cost_usd=0.25
+                    "alpha", 400, "success", tokens_in=5, tokens_out=5,
+                    cost_usd=0.25, cache_read_tokens=2500, cache_creation_tokens=9,
                 ),
             ],
         )
@@ -1012,6 +1020,8 @@ class CliStatsPerAgentTableTests(_IsolatedJournalTestCase):
         _assert_standalone_integer(self, output, 200)  # p50 duration_ms
         _assert_standalone_integer(self, output, 400)  # p95 duration_ms
         _assert_standalone_integer(self, output, 60)  # total tokens (35 + 25)
+        _assert_standalone_integer(self, output, 7500)  # cache reads, NULL as 0
+        _assert_standalone_integer(self, output, 89)  # cache creations, NULL as 0
         _assert_standalone_amount(self, output, 1.0)  # total cost
 
     def test_stats_shows_em_dash_for_rate_and_percentiles_when_agent_has_no_finished_runs(self):
@@ -1329,6 +1339,15 @@ class CliStatsDbFlagTests(_IsolatedJournalTestCase):
         self.assertFalse(os.path.exists(snap_path + "-wal"))
         with open(snap_path, "rb") as fh:
             self.assertEqual(fh.read(), before)
+
+    def test_stats_db_reads_snapshots_that_predate_the_cache_columns(self):
+        snap_path = os.path.join(self._tempdir, "old-snap.db")
+        _seed_old_schema_db(snap_path, agent="old-agent")
+
+        exit_code, output = _capture_stdout(["stats", "--db", snap_path])
+
+        self.assertEqual(exit_code, 0)
+        self.assertIn("old-agent", output)
 
     def test_stats_db_with_missing_file_warns_once_and_does_not_create_it(self):
         missing = os.path.join(self._tempdir, "no-such.db")

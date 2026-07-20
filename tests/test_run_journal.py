@@ -71,44 +71,6 @@ CREATE TABLE IF NOT EXISTS events (
 """
 
 
-_PRE_TEMPLATE_VERSION_RUNS_TABLE_SQL = """
-CREATE TABLE runs (
-    id          INTEGER PRIMARY KEY,
-    project     TEXT NOT NULL,
-    agent       TEXT NOT NULL,
-    task        TEXT NOT NULL,
-    status      TEXT NOT NULL,
-    started_at  TEXT NOT NULL,
-    finished_at TEXT,
-    duration_ms INTEGER,
-    tokens_in   INTEGER,
-    tokens_out  INTEGER,
-    cost_usd    REAL,
-    error       TEXT,
-    metadata    TEXT
-)
-"""
-
-
-def _seed_old_schema_db(db_path, agent="agent"):
-    """Create a database with the pre-template_version schema and one run."""
-    parent = os.path.dirname(db_path)
-    if parent:
-        os.makedirs(parent, exist_ok=True)
-    conn = sqlite3.connect(db_path)
-    try:
-        conn.execute(_PRE_TEMPLATE_VERSION_RUNS_TABLE_SQL)
-        conn.execute(_EVENTS_TABLE_SQL)
-        conn.execute(
-            "INSERT INTO runs (project, agent, task, status, started_at)"
-            " VALUES (?, ?, 't', 'success', '2026-01-01T00:00:00+00:00')",
-            ("proj", agent),
-        )
-        conn.commit()
-    finally:
-        conn.close()
-
-
 class _Boom(Exception):
     """Exception used only to verify that record() re-raises unchanged."""
 
@@ -541,42 +503,6 @@ class TemplateVersionCaptureTests(_IsolatedJournalTestCase):
 
         row = _fetch_run(self.db_path, run_id)
         self.assertIsNone(row["template_version"])
-
-
-# ---------------------------------------------------------------------------
-# Schema migration
-# ---------------------------------------------------------------------------
-
-
-class SchemaMigrationTests(_IsolatedJournalTestCase):
-    def test_start_run_adds_missing_columns_to_a_pre_column_database(self):
-        _seed_old_schema_db(self.db_path, agent="old-agent")
-
-        run_id = run_journal.start_run("agent", "task")
-
-        new_row = _fetch_run(self.db_path, run_id)
-        for column in ("template_version", "cache_read_tokens",
-                       "cache_creation_tokens"):
-            self.assertIn(column, new_row.keys())
-        conn = sqlite3.connect(self.db_path)
-        try:
-            old_version = conn.execute(
-                "SELECT template_version FROM runs WHERE agent = 'old-agent'"
-            ).fetchone()[0]
-        finally:
-            conn.close()
-        self.assertIsNone(old_version)
-
-    def test_finish_run_writes_cache_columns_after_migrating_an_old_database(self):
-        _seed_old_schema_db(self.db_path)
-
-        run_id = run_journal.start_run("agent", "task")
-        run_journal.finish_run(run_id, "success", cache_read_tokens=1000,
-                               cache_creation_tokens=50)
-
-        row = _fetch_run(self.db_path, run_id)
-        self.assertEqual(row["cache_read_tokens"], 1000)
-        self.assertEqual(row["cache_creation_tokens"], 50)
 
 
 # ---------------------------------------------------------------------------
@@ -1249,17 +1175,6 @@ class CliStatsByVersionTests(_IsolatedJournalTestCase):
         self.assertIn("ver-a", output)
         self.assertNotIn("ver-b", output)
 
-    def test_stats_by_version_reads_snapshots_that_predate_the_version_column(self):
-        snap_path = os.path.join(self._tempdir, "old-snap.db")
-        _seed_old_schema_db(snap_path)
-
-        exit_code, output = _capture_stdout(
-            ["stats", "--by-version", "--db", snap_path]
-        )
-
-        self.assertEqual(exit_code, 0)
-        self.assertIn("—", output)
-
 
 # ---------------------------------------------------------------------------
 # CLI: `snapshot`
@@ -1339,15 +1254,6 @@ class CliStatsDbFlagTests(_IsolatedJournalTestCase):
         self.assertFalse(os.path.exists(snap_path + "-wal"))
         with open(snap_path, "rb") as fh:
             self.assertEqual(fh.read(), before)
-
-    def test_stats_db_reads_snapshots_that_predate_the_cache_columns(self):
-        snap_path = os.path.join(self._tempdir, "old-snap.db")
-        _seed_old_schema_db(snap_path, agent="old-agent")
-
-        exit_code, output = _capture_stdout(["stats", "--db", snap_path])
-
-        self.assertEqual(exit_code, 0)
-        self.assertIn("old-agent", output)
 
     def test_stats_db_with_missing_file_warns_once_and_does_not_create_it(self):
         missing = os.path.join(self._tempdir, "no-such.db")

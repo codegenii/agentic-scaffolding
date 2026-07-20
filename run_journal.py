@@ -130,36 +130,12 @@ def _ensure_wal_and_schema(conn, path):
             if path not in _initialized_paths:
                 conn.execute(_RUNS_TABLE_SQL)
                 conn.execute(_EVENTS_TABLE_SQL)
-                _migrate_runs_columns(conn)
                 conn.commit()
                 _initialized_paths.add(path)
             return
         except sqlite3.OperationalError as exc:
             last_exc = exc
     raise last_exc
-
-
-# Columns added after the initial schema, in the order they were introduced.
-# Fresh databases get them from _RUNS_TABLE_SQL; existing ones via ALTER TABLE.
-_ADDED_RUNS_COLUMNS = (
-    ("template_version", "TEXT"),
-    ("cache_read_tokens", "INTEGER"),
-    ("cache_creation_tokens", "INTEGER"),
-)
-
-
-def _migrate_runs_columns(conn):
-    """Additive migration for databases created before newer columns existed."""
-    columns = {row[1] for row in conn.execute("PRAGMA table_info(runs)")}
-    for name, sql_type in _ADDED_RUNS_COLUMNS:
-        if name in columns:
-            continue
-        try:
-            conn.execute(f"ALTER TABLE runs ADD COLUMN {name} {sql_type}")
-        except sqlite3.OperationalError as exc:
-            # Lost a race with another process adding the same column.
-            if "duplicate column" not in str(exc).lower():
-                raise
 
 
 def _utc_now():
@@ -431,10 +407,10 @@ def _format_summary_line(label, rows):
         (row["tokens_in"] or 0) + (row["tokens_out"] or 0) for row in rows
     )
     total_cache_read = sum(
-        _row_column(row, "cache_read_tokens") or 0 for row in rows
+        (row["cache_read_tokens"] or 0) for row in rows
     )
     total_cache_creation = sum(
-        _row_column(row, "cache_creation_tokens") or 0 for row in rows
+        (row["cache_creation_tokens"] or 0) for row in rows
     )
     total_cost = sum((row["cost_usd"] or 0) for row in rows)
 
@@ -475,16 +451,10 @@ def _print_per_agent_table(rows):
     _print_summary_table("Per-agent stats:", "agent", ordered)
 
 
-def _row_column(row, name):
-    # Snapshots taken before a column existed lack it entirely.
-    return row[name] if name in row.keys() else None
-
-
 def _print_per_version_table(rows):
     groups = {}
     for row in rows:
-        version = _row_column(row, "template_version") or "—"
-        groups.setdefault(version, []).append(row)
+        groups.setdefault(row["template_version"] or "—", []).append(row)
     # Chronological by each version's earliest run — the improvement timeline.
     ordered = sorted(
         groups.items(),
